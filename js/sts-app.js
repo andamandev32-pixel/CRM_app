@@ -96,7 +96,7 @@ const STSApp = {
                         </div>
                         <div class="logo-text">
                             <span class="logo-title">CRM</span>
-                            <span class="logo-subtitle">Meditech</span>
+                            <span class="logo-subtitle">Meditech Solution</span>
                         </div>
                     </div>
                 </a>
@@ -214,7 +214,7 @@ const STSApp = {
                                 </div>
                                 <div class="logo-text text-start">
                                     <span class="logo-title">CRM</span>
-                                    <span class="logo-subtitle">Meditech</span>
+                                    <span class="logo-subtitle">Meditech Solution</span>
                                 </div>
                             </div>
                             <p class="text-muted">ระบบติดตามการขาย HIS & Queue</p>

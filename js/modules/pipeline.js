@@ -33,7 +33,7 @@ const PipelineModule = {
     // Product Group definitions
     PRODUCT_GROUPS: {
         'MEDIQ': { name: 'MEDIQ Platform', emoji: '🏥', color: '#8B5CF6', products: ['MediQ', 'Queue'] },
-        'HIS': { name: 'Hospital IS', emoji: '🖥️', color: '#3B82F6', products: ['HIS', 'MediCore'] },
+        'HIS': { name: 'MediCore', emoji: '🖥️', color: '#3B82F6', products: ['HIS', 'MediCore'] },
         'ERP': { name: 'ERP', emoji: '📊', color: '#10B981', products: ['ERP'] },
         'Custom': { name: 'Custom Solutions', emoji: '🔧', color: '#F59E0B', products: ['ระบบระบาดวิทยา', 'Custom', 'Both'] }
     },
@@ -811,7 +811,7 @@ const PipelineModule = {
                             <label class="form-label fw-bold">กลุ่มผลิตภัณฑ์ *</label>
                             <select class="form-select" name="productGroup" required>
                                 <option value="MEDIQ">🏥 MEDIQ Platform</option>
-                                <option value="HIS">🖥️ Hospital IS</option>
+                                <option value="HIS">🖥️ MediCore</option>
                                 <option value="ERP">📊 ERP</option>
                                 <option value="Custom">🔧 Custom Solutions</option>
                             </select>

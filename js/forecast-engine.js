@@ -38,7 +38,7 @@ const ForecastEngine = {
     // Product group definitions
     productGroups: {
         'MEDIQ': { name: 'MEDIQ Platform', emoji: '🏥', color: '#8B5CF6', products: ['MediQ', 'Queue'] },
-        'HIS': { name: 'Hospital IS', emoji: '🖥️', color: '#3B82F6', products: ['HIS', 'MediCore'] },
+        'HIS': { name: 'MediCore', emoji: '🖥️', color: '#3B82F6', products: ['HIS', 'MediCore'] },
         'ERP': { name: 'ERP', emoji: '📊', color: '#10B981', products: ['ERP'] },
         'Custom': { name: 'Custom Solutions', emoji: '🔧', color: '#F59E0B', products: ['ระบบระบาดวิทยา', 'Custom'] }
     },

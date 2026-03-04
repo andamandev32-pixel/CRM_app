@@ -130,7 +130,7 @@ function openAddOpportunityForm() {
                 <label class="form-label required">กลุ่มผลิตภัณฑ์</label>
                 <select class="form-select" name="productGroup" required>
                     <option value="MEDIQ">🏥 MEDIQ Platform</option>
-                    <option value="HIS">🖥️ Hospital IS</option>
+                    <option value="HIS">🖥️ MediCore</option>
                     <option value="ERP">📊 ERP</option>
                     <option value="Custom">🔧 Custom Solutions</option>
                 </select>

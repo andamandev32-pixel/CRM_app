@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Debug STS Modules</title>
+    <script>
+        // Simple test to check if modules are loading
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('=== STS Module Debug ===');
+            console.log('CalendarModule:', typeof CalendarModule);
+            console.log('CustomersModule:', typeof CustomersModule);
+            console.log('DemosModule:', typeof DemosModule);
+            console.log('PipelineModule:', typeof PipelineModule);
+            console.log('InsightsModule:', typeof InsightsModule);
+            console.log('DevRequestsModule:', typeof DevRequestsModule);
+            console.log('MeetingsModule:', typeof MeetingsModule);
+            console.log('ProjectsModule:', typeof ProjectsModule);
+            console.log('POWorkspaceModule:', typeof POWorkspaceModule);
+            console.log('DashboardsModule:', typeof DashboardsModule);
+            console.log('NotificationsModule:', typeof NotificationsModule);
+            console.log('VisitsModule:', typeof VisitsModule);
+
+            document.getElementById('results').innerHTML = `
+                <h3>Module Loading Status:</h3>
+                <ul>
+                    <li>CalendarModule: <strong>${typeof CalendarModule}</strong></li>
+                    <li>CustomersModule: <strong>${typeof CustomersModule}</strong></li>
+                    <li>DemosModule: <strong>${typeof DemosModule}</strong></li>
+                    <li>PipelineModule: <strong>${typeof PipelineModule}</strong></li>
+                    <li>InsightsModule: <strong>${typeof InsightsModule}</strong></li>
+                    <li>DevRequestsModule: <strong>${typeof DevRequestsModule}</strong></li>
+                    <li>MeetingsModule: <strong>${typeof MeetingsModule}</strong></li>
+                    <li>ProjectsModule: <strong>${typeof ProjectsModule}</strong></li>
+                    <li>POWorkspaceModule: <strong>${typeof POWorkspaceModule}</strong></li>
+                    <li>DashboardsModule: <strong>${typeof DashboardsModule}</strong></li>
+                    <li>NotificationsModule: <strong>${typeof NotificationsModule}</strong></li>
+                    <li>VisitsModule: <strong>${typeof VisitsModule}</strong></li>
+                </ul>
+                <p><strong>All should show "object" if loaded correctly</strong></p>
+            `;
+        });
+    </script>
+</head>
+
+<body>
+    <h1>STS Module Debug</h1>
+    <div id="results">Loading...</div>
+
+    <!-- Load all scripts in correct order -->
+    <script src="js/storage.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/mock-data.js"></script>
+
+    <!-- Module scripts -->
+    <script src="js/modules/customers.js"></script>
+    <script src="js/modules/visits.js"></script>
+    <script src="js/modules/demos.js"></script>
+    <script src="js/modules/pipeline.js"></script>
+    <script src="js/modules/insights.js"></script>
+    <script src="js/modules/dashboards.js"></script>
+    <script src="js/modules/notifications.js"></script>
+    <script src="js/modules/calendar.js"></script>
+    <script src="js/modules/dev-requests.js"></script>
+    <script src="js/modules/meetings.js"></script>
+    <script src="js/modules/projects.js"></script>
+    <script src="js/modules/po-workspace.js"></script>
+</body>
+
+</html>

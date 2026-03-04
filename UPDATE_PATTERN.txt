@@ -1,0 +1,31 @@
+// Helper script to update all modules with process flow at bottom
+// This is a reference file showing the pattern to apply
+
+/*
+PATTERN TO APPLY TO ALL MODULES:
+
+1. Remove process flow from top of module
+2. Add process flow at bottom before closing the mainContent.innerHTML
+3. Add scroll buttons at the very end
+
+Example structure:
+mainContent.innerHTML = `
+    <!-- Main content here -->
+    
+    <!-- Process Flow Guide (Moved to Bottom) -->
+    <div style="margin-top: var(--spacing-xl);">
+        ${renderProcessFlow('appropriate-flow-key')}
+    </div>
+    
+    <!-- Scroll Navigation Buttons -->
+    ${renderScrollButtons()}
+`;
+
+MODULES TO UPDATE:
+- customers.js - use 'customer-onboarding'
+- pipeline.js - use 'pipeline-stages'
+- visits.js - use 'visit-workflow'
+- demos.js - use 'demo-trial'
+- insights.js - use 'insight-workflow'
+- notifications.js - no process flow needed (already has approval flow)
+*/

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar Module Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/sts-main.css">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3><i class="bi bi-calendar3"></i> Calendar Module Test</h3>
+            </div>
+            <div class="card-body">
+                <h5>ทดสอบโมดูล Calendar</h5>
+                <p class="text-muted">หน้านี้ใช้สำหรับทดสอบโมดูล Calendar แบบ standalone</p>
+
+                <div id="pageContent" class="mt-4">
+                    <!-- Calendar will be rendered here -->
+                </div>
+
+                <hr class="my-4">
+
+                <div class="alert alert-info">
+                    <strong>วิธีทดสอบ:</strong>
+                    <ol class="mb-0">
+                        <li>เปิด Console (กด F12)</li>
+                        <li>ดูว่ามี errors หรือไม่</li>
+                        <li>ตรวจสอบว่า CalendarModule โหลดถูกต้องหรือไม่</li>
+                        <li>ลองคลิกปุ่มต่างๆ ในปฏิทิน</li>
+                    </ol>
+                </div>
+
+                <div class="mt-3">
+                    <button class="btn btn-primary" onclick="testCalendar()">
+                        <i class="bi bi-play-circle"></i> ทดสอบ Calendar
+                    </button>
+                    <button class="btn btn-secondary" onclick="location.reload()">
+                        <i class="bi bi-arrow-clockwise"></i> Reload
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core JS Files -->
+    <script src="js/storage.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/mock-data.js"></script>
+
+    <!-- Calendar Module -->
+    <script src="js/modules/calendar.js"></script>
+
+    <script>
+        // Initialize mock data
+        if (!Storage.get('calendarEvents') || Storage.get('calendarEvents').length === 0) {
+            console.log('Initializing mock data...');
+            MockData.init();
+        }
+
+        // Test function
+        function testCalendar() {
+            console.log('Testing Calendar Module...');
+            console.log('CalendarModule:', CalendarModule);
+
+            try {
+                CalendarModule.renderDashboard();
+                console.log('✅ Calendar rendered successfully!');
+            } catch (error) {
+                console.error('❌ Error rendering calendar:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            console.log('Page loaded, testing calendar...');
+            setTimeout(() => {
+                testCalendar();
+            }, 500);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Mock Data</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h3><i class="bi bi-arrow-clockwise"></i> Reset Mock Data</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <strong><i class="bi bi-exclamation-triangle"></i> คำเตือน!</strong><br>
+                    การรีเซ็ตข้อมูลจะลบข้อมูลทั้งหมดใน LocalStorage และสร้างข้อมูลใหม่
+                </div>
+
+                <div id="status" class="mb-3"></div>
+
+                <button class="btn btn-warning btn-lg" onclick="resetData()">
+                    <i class="bi bi-arrow-clockwise"></i> รีเซ็ตข้อมูลทั้งหมด
+                </button>
+
+                <button class="btn btn-success btn-lg ms-2" onclick="testCalendar()">
+                    <i class="bi bi-calendar3"></i> ทดสอบ Calendar
+                </button>
+
+                <hr class="my-4">
+
+                <h5>ข้อมูลปัจจุบัน:</h5>
+                <div id="currentData" class="bg-light p-3 rounded">
+                    <pre id="dataDisplay"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core JS Files -->
+    <script src="js/storage.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/mock-data.js"></script>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+        }
+
+        function resetData() {
+            if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการรีเซ็ตข้อมูลทั้งหมด?')) {
+                return;
+            }
+
+            showStatus('<i class="bi bi-hourglass-split"></i> กำลังรีเซ็ตข้อมูล...', 'info');
+
+            try {
+                // Clear all data
+                localStorage.clear();
+
+                // Reinitialize storage
+                Storage.init();
+
+                // Generate new mock data
+                MockData.generate();
+
+                showStatus('<i class="bi bi-check-circle"></i> รีเซ็ตข้อมูลสำเร็จ!', 'success');
+
+                // Display current data
+                displayCurrentData();
+
+                setTimeout(() => {
+                    showStatus('<i class="bi bi-info-circle"></i> คุณสามารถทดสอบ Calendar ได้แล้ว หรือกลับไปที่ระบบหลัก', 'info');
+                }, 1000);
+            } catch (error) {
+                showStatus(`<i class="bi bi-x-circle"></i> เกิดข้อผิดพลาด: ${error.message}`, 'danger');
+                console.error('Reset error:', error);
+            }
+        }
+
+        function displayCurrentData() {
+            const events = Storage.get('calendarEvents');
+            const dataDisplay = document.getElementById('dataDisplay');
+
+            if (events && events.length > 0) {
+                dataDisplay.textContent = JSON.stringify({
+                    totalEvents: events.length,
+                    sampleEvent: events[0]
+                }, null, 2);
+            } else {
+                dataDisplay.textContent = 'ไม่มีข้อมูล Calendar Events';
+            }
+        }
+
+        function testCalendar() {
+            window.location.href = 'test-calendar.html';
+        }
+
+        // Display data on load
+        window.addEventListener('load', () => {
+            displayCurrentData();
+        });
+    </script>
+</body>
+
+</html>

@@ -96,8 +96,8 @@ const STSApp = {
                             <i class="bi bi-graph-up-arrow"></i>
                         </div>
                         <div class="logo-text">
-                            <span class="logo-title">CRM</span>
-                            <span class="logo-subtitle">Meditech Solution</span>
+                            <span class="logo-title">Meditech Solution</span>
+                            <span class="logo-subtitle">CRM Platform</span>
                         </div>
                     </div>
                 </a>
@@ -224,8 +224,8 @@ const STSApp = {
                                     <i class="bi bi-graph-up-arrow"></i>
                                 </div>
                                 <div class="logo-text text-start">
-                                    <span class="logo-title">CRM</span>
-                                    <span class="logo-subtitle">Meditech Solution</span>
+                                    <span class="logo-title">Meditech Solution</span>
+                                    <span class="logo-subtitle">CRM Platform</span>
                                 </div>
                             </div>
                             <p class="text-muted">ระบบติดตามการขาย B2B Phototype</p>

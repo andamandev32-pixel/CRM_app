@@ -278,8 +278,9 @@ const STSApp = {
             <div id="pinModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
                 <div style="background:#fff; border-radius:16px; padding:2rem; width:300px; box-shadow:0 8px 32px rgba(0,0,0,0.25); text-align:center;">
                     <h6 class="mb-1" id="pinModalTitle">เข้าสู่ระบบ</h6>
-                    <p class="text-muted small mb-3" id="pinModalSubtitle">ป้อน PIN 4 หลักเพื่อเข้าสู่ระบบ</p>
+                    <p class="text-muted small mb-3" id="pinModalSubtitle">ป้อน PIN 5 หลักเพื่อเข้าสู่ระบบ</p>
                     <div class="d-flex justify-content-center gap-3 mb-3">
+                        <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #0D6EFD;background:#fff;transition:background .15s;"></div>
                         <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #0D6EFD;background:#fff;transition:background .15s;"></div>
                         <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #0D6EFD;background:#fff;transition:background .15s;"></div>
                         <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #0D6EFD;background:#fff;transition:background .15s;"></div>
@@ -308,7 +309,7 @@ const STSApp = {
         // --- PIN Logic ---
         let pendingUserId = null;
         let pinEntry = '';
-        const CORRECT_PIN = '1234';
+        const CORRECT_PIN = '10210';
 
         const pinModal = document.getElementById('pinModal');
         const pinErrorEl = document.getElementById('pinError');
@@ -350,10 +351,10 @@ const STSApp = {
             if (val === 'del') {
                 pinEntry = pinEntry.slice(0, -1);
                 updatePinDots();
-            } else if (pinEntry.length < 4) {
+            } else if (pinEntry.length < 5) {
                 pinEntry += val;
                 updatePinDots();
-                if (pinEntry.length === 4) {
+                if (pinEntry.length === 5) {
                     if (pinEntry === CORRECT_PIN) {
                         closePinModal();
                         Auth.switchUser(pendingUserId);

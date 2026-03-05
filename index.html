@@ -18,41 +18,588 @@
 </head>
 
 <body>
-    <!-- Development PIN Overlay -->
+    <!-- Premium Login Page -->
     <div id="pinOverlay"
-        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; font-family: system-ui, -apple-system, sans-serif;">
-        <div
-            style="background: #1e293b; padding: 3rem; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); text-align: center; border: 1px solid #334155; width: 90%; max-width: 400px;">
-            <div style="font-size: 3.5rem; margin-bottom: 1rem; line-height: 1;">🔒</div>
-            <h3 class="mb-2" style="font-weight: 600; color: #f8fafc;">ระบบจำกัดการเข้าถึง</h3>
-            <p class="mb-4" style="color: #94a3b8; font-size: 0.95rem;">กรุณาใส่รหัส PIN เพื่อเข้าสู่ระบบทดสอบ</p>
+        style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99999;display:flex;overflow:hidden;">
 
-            <div class="d-flex flex-column align-items-center gap-3">
-                <input type="password" id="devPinInput" class="form-control text-center" placeholder="•••••"
-                    style="font-size: 2rem; width: 100%; letter-spacing: 12px; border-radius: 10px; border: 2px solid #cbd5e1; background: #f8fafc; color: #0f172a; font-weight: bold; padding: 10px;"
-                    maxlength="5">
-                <button id="devPinBtn" class="btn btn-primary w-100 mt-2"
-                    style="border-radius: 10px; font-weight: 600; font-size: 1.1rem; padding: 12px; background-color: #3b82f6; border: none;">เข้าสู่ระบบ
-                    / Enter</button>
-                <div id="devPinError" class="text-danger mt-2 fw-bold"
-                    style="display: none; font-size: 0.95rem; background: rgba(239, 68, 68, 0.1); padding: 8px 12px; border-radius: 6px; width: 100%;">
-                    รหัส PIN ไม่ถูกต้อง!</div>
+        <!-- Animated Background -->
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+            #pinOverlay {
+                font-family: 'Inter', system-ui, sans-serif;
+            }
+
+            .login-bg {
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #0f4c81 70%, #1a237e 100%);
+            }
+
+            .login-orb {
+                position: absolute;
+                border-radius: 50%;
+                filter: blur(80px);
+                opacity: 0.25;
+                animation: orbFloat 8s ease-in-out infinite;
+            }
+
+            .login-orb-1 {
+                width: 500px;
+                height: 500px;
+                background: #3b82f6;
+                top: -150px;
+                right: -100px;
+                animation-delay: 0s;
+            }
+
+            .login-orb-2 {
+                width: 400px;
+                height: 400px;
+                background: #6366f1;
+                bottom: -100px;
+                left: -100px;
+                animation-delay: -4s;
+            }
+
+            .login-orb-3 {
+                width: 300px;
+                height: 300px;
+                background: #0ea5e9;
+                top: 50%;
+                left: 40%;
+                animation-delay: -2s;
+            }
+
+            @keyframes orbFloat {
+
+                0%,
+                100% {
+                    transform: translate(0, 0) scale(1);
+                }
+
+                33% {
+                    transform: translate(20px, -30px) scale(1.05);
+                }
+
+                66% {
+                    transform: translate(-15px, 20px) scale(0.97);
+                }
+            }
+
+            .login-grid-lines {
+                position: absolute;
+                inset: 0;
+                background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+                background-size: 60px 60px;
+            }
+
+            /* Left panel */
+            .login-left {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 3rem 4rem;
+                color: white;
+                position: relative;
+                z-index: 1;
+            }
+
+            .login-logo {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin-bottom: 3rem;
+            }
+
+            .login-logo-icon {
+                width: 56px;
+                height: 56px;
+                background: linear-gradient(135deg, #3b82f6, #6366f1);
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.6rem;
+                box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+            }
+
+            .login-logo-text .brand {
+                font-size: 1.5rem;
+                font-weight: 800;
+                letter-spacing: -0.5px;
+            }
+
+            .login-logo-text .sub {
+                font-size: 0.85rem;
+                color: #94a3b8;
+                font-weight: 400;
+                margin-top: -2px;
+            }
+
+            .login-headline {
+                font-size: 2.8rem;
+                font-weight: 800;
+                line-height: 1.2;
+                margin-bottom: 1.25rem;
+            }
+
+            .login-headline .accent {
+                background: linear-gradient(90deg, #60a5fa, #a78bfa);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .login-desc {
+                color: #94a3b8;
+                font-size: 1rem;
+                line-height: 1.7;
+                max-width: 420px;
+                margin-bottom: 3rem;
+            }
+
+            .feature-pills {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.6rem;
+            }
+
+            .feature-pill {
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                background: rgba(255, 255, 255, 0.07);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 50px;
+                padding: 0.4rem 0.9rem;
+                font-size: 0.8rem;
+                color: #cbd5e1;
+                backdrop-filter: blur(4px);
+            }
+
+            /* Right panel */
+            .login-right {
+                width: 460px;
+                min-height: 100vh;
+                background: rgba(255, 255, 255, 0.97);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 2.5rem 2.5rem;
+                position: relative;
+                z-index: 1;
+                box-shadow: -20px 0 60px rgba(0, 0, 0, 0.3);
+                overflow-y: auto;
+            }
+
+            .login-right-title {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #0f172a;
+                margin-bottom: 0.35rem;
+            }
+
+            .login-right-sub {
+                font-size: 0.875rem;
+                color: #64748b;
+                margin-bottom: 1.75rem;
+            }
+
+            .user-card {
+                display: flex;
+                align-items: center;
+                gap: 0.85rem;
+                padding: 0.85rem 1rem;
+                border-radius: 12px;
+                border: 1.5px solid #e2e8f0;
+                background: #f8fafc;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                margin-bottom: 0.6rem;
+            }
+
+            .user-card:hover {
+                border-color: #3b82f6;
+                background: #eff6ff;
+                transform: translateX(4px);
+                box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+            }
+
+            .user-card:active {
+                transform: translateX(2px);
+            }
+
+            .user-avatar-circle {
+                width: 42px;
+                height: 42px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.2rem;
+                flex-shrink: 0;
+            }
+
+            .user-card-info .name {
+                font-weight: 600;
+                font-size: 0.9rem;
+                color: #0f172a;
+            }
+
+            .user-card-info .role {
+                font-size: 0.75rem;
+                color: #64748b;
+                margin-top: 1px;
+            }
+
+            .user-card-arrow {
+                margin-left: auto;
+                color: #cbd5e1;
+                font-size: 1rem;
+                transition: color 0.2s;
+            }
+
+            .user-card:hover .user-card-arrow {
+                color: #3b82f6;
+            }
+
+            .divider-label {
+                text-align: center;
+                position: relative;
+                margin: 1.25rem 0;
+                font-size: 0.75rem;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            .divider-label::before,
+            .divider-label::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                width: 40%;
+                height: 1px;
+                background: #e2e8f0;
+            }
+
+            .divider-label::before {
+                left: 0;
+            }
+
+            .divider-label::after {
+                right: 0;
+            }
+
+            /* PIN Modal */
+            #pinModal2 {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 23, 42, 0.65);
+                z-index: 999999;
+                align-items: center;
+                justify-content: center;
+                backdrop-filter: blur(4px);
+            }
+
+            #pinModal2.show {
+                display: flex;
+            }
+
+            .pin-modal-card {
+                background: white;
+                border-radius: 20px;
+                padding: 2rem 1.75rem;
+                width: 320px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                text-align: center;
+                animation: slideUp 0.25s ease;
+            }
+
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px) scale(0.97);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+
+            .pin-user-badge {
+                width: 60px;
+                height: 60px;
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.75rem;
+                margin: 0 auto 1rem;
+            }
+
+            .pin-modal-title {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: #0f172a;
+                margin-bottom: 0.25rem;
+            }
+
+            .pin-modal-sub {
+                font-size: 0.8rem;
+                color: #64748b;
+                margin-bottom: 1.5rem;
+            }
+
+            .pin-dots {
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+                margin-bottom: 1.5rem;
+            }
+
+            .pin-dot2 {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                border: 2px solid #cbd5e1;
+                background: white;
+                transition: all 0.15s ease;
+            }
+
+            .pin-dot2.filled {
+                background: #3b82f6;
+                border-color: #3b82f6;
+                transform: scale(1.1);
+            }
+
+            .pin-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.6rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .pin-btn2 {
+                padding: 0.85rem;
+                font-size: 1.2rem;
+                font-weight: 600;
+                color: #1e293b;
+                background: #f8fafc;
+                border: 1.5px solid #e2e8f0;
+                border-radius: 12px;
+                cursor: pointer;
+                transition: all 0.15s ease;
+                line-height: 1;
+            }
+
+            .pin-btn2:hover {
+                background: #eff6ff;
+                border-color: #3b82f6;
+                color: #3b82f6;
+            }
+
+            .pin-btn2:active {
+                transform: scale(0.94);
+            }
+
+            .pin-btn2.del {
+                background: #fef2f2;
+                border-color: #fecaca;
+                color: #ef4444;
+            }
+
+            .pin-btn2.del:hover {
+                background: #fee2e2;
+            }
+
+            .pin-error2 {
+                color: #ef4444;
+                font-size: 0.8rem;
+                min-height: 1.2em;
+                margin-bottom: 0.75rem;
+            }
+
+            .pin-cancel2 {
+                width: 100%;
+                padding: 0.6rem;
+                background: none;
+                border: 1.5px solid #e2e8f0;
+                border-radius: 10px;
+                color: #64748b;
+                font-size: 0.875rem;
+                cursor: pointer;
+                transition: all 0.15s;
+            }
+
+            .pin-cancel2:hover {
+                border-color: #94a3b8;
+                color: #374151;
+            }
+
+            @media (max-width: 768px) {
+                .login-left {
+                    display: none;
+                }
+
+                .login-right {
+                    width: 100%;
+                    padding: 2rem 1.5rem;
+                }
+            }
+        </style>
+
+        <div class="login-bg"></div>
+        <div class="login-orb login-orb-1"></div>
+        <div class="login-orb login-orb-2"></div>
+        <div class="login-orb login-orb-3"></div>
+        <div class="login-grid-lines"></div>
+
+        <!-- Left Panel: Branding -->
+        <div class="login-left">
+            <div class="login-logo">
+                <div class="login-logo-icon">📊</div>
+                <div class="login-logo-text">
+                    <div class="brand">CRM Meditech</div>
+                    <div class="sub">Solution Platform</div>
+                </div>
+            </div>
+
+            <div class="login-headline">
+                ระบบติดตาม<br>การขาย <span class="accent">B2B</span><br>Prototype
+            </div>
+            <p class="login-desc">บริหารจัดการ Pipeline ลูกค้า และทีมขาย ในระบบเดียวครบวงจร สำหรับธุรกิจ Healthcare</p>
+
+            <div class="feature-pills">
+                <div class="feature-pill">📈 Sales Pipeline</div>
+                <div class="feature-pill">👥 ลูกค้า CRM</div>
+                <div class="feature-pill">💰 Budget Control</div>
+                <div class="feature-pill">📅 เข้าพบลูกค้า</div>
+                <div class="feature-pill">💡 Customer Insights</div>
+                <div class="feature-pill">🖥️ Demo/Trial</div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Login -->
+        <div class="login-right">
+            <div style="margin-bottom:2rem;">
+                <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1.5rem;">
+                    <div
+                        style="width:32px;height:32px;background:linear-gradient(135deg,#3b82f6,#6366f1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">
+                        📊</div>
+                    <span style="font-weight:700;color:#1e293b;font-size:1rem;">CRM Meditech</span>
+                </div>
+                <div class="login-right-title">ยินดีต้อนรับ 👋</div>
+                <div class="login-right-sub">เลือกบัญชีผู้ใช้เพื่อเข้าสู่ระบบ</div>
+            </div>
+
+            <div class="divider-label">พนักงานขาย</div>
+
+            <div class="user-card" data-user="USR-001" data-name="พี่หม๋วย" data-emoji="👩‍💼"
+                data-color="linear-gradient(135deg,#3b82f6,#60a5fa)">
+                <div class="user-avatar-circle" style="background:linear-gradient(135deg,#3b82f6,#60a5fa);">👩‍💼</div>
+                <div class="user-card-info">
+                    <div class="name">พี่หม๋วย</div>
+                    <div class="role">Sales Executive</div>
+                </div>
+                <div class="user-card-arrow">›</div>
+            </div>
+
+            <div class="user-card" data-user="USR-002" data-name="พี่มายด์" data-emoji="👩‍💼"
+                data-color="linear-gradient(135deg,#8b5cf6,#a78bfa)">
+                <div class="user-avatar-circle" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa);">👩‍💼</div>
+                <div class="user-card-info">
+                    <div class="name">พี่มายด์</div>
+                    <div class="role">Sales Executive</div>
+                </div>
+                <div class="user-card-arrow">›</div>
+            </div>
+
+            <div class="user-card" data-user="USR-003" data-name="พี่โอ๋" data-emoji="👩‍💼"
+                data-color="linear-gradient(135deg,#06b6d4,#0ea5e9)">
+                <div class="user-avatar-circle" style="background:linear-gradient(135deg,#06b6d4,#0ea5e9);">👩‍💼</div>
+                <div class="user-card-info">
+                    <div class="name">พี่โอ๋</div>
+                    <div class="role">Sales Executive</div>
+                </div>
+                <div class="user-card-arrow">›</div>
+            </div>
+
+            <div class="divider-label">ผู้บริหาร & ระบบ</div>
+
+            <div class="user-card" data-user="USR-007" data-name="ผู้บริหาร" data-emoji="👔"
+                data-color="linear-gradient(135deg,#f59e0b,#fbbf24)">
+                <div class="user-avatar-circle" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);">👔</div>
+                <div class="user-card-info">
+                    <div class="name">ผู้บริหาร</div>
+                    <div class="role">Management</div>
+                </div>
+                <div class="user-card-arrow">›</div>
+            </div>
+
+            <div class="user-card" data-user="USR-006" data-name="Admin System" data-emoji="🔧"
+                data-color="linear-gradient(135deg,#ef4444,#f87171)">
+                <div class="user-avatar-circle" style="background:linear-gradient(135deg,#ef4444,#f87171);">🔧</div>
+                <div class="user-card-info">
+                    <div class="name">Admin System</div>
+                    <div class="role">Administrator</div>
+                </div>
+                <div class="user-card-arrow">›</div>
+            </div>
+
+            <div style="margin-top:1.75rem;padding-top:1.25rem;border-top:1px solid #f1f5f9;text-align:center;">
+                <div style="font-size:0.75rem;color:#94a3b8;">🔒 ระบบ Prototype — PIN: <span
+                        style="font-family:monospace;color:#64748b;">10210</span></div>
             </div>
         </div>
     </div>
 
+    <!-- PIN Modal -->
+    <div id="pinModal2">
+        <div class="pin-modal-card" id="pinModalCard2">
+            <div class="pin-user-badge" id="pinBadge2">👤</div>
+            <div class="pin-modal-title" id="pinTitle2">เข้าสู่ระบบ</div>
+            <div class="pin-modal-sub">ป้อน PIN 5 หลักเพื่อเข้าสู่ระบบ</div>
+            <div class="pin-dots" id="pinDots2">
+                <div class="pin-dot2"></div>
+                <div class="pin-dot2"></div>
+                <div class="pin-dot2"></div>
+                <div class="pin-dot2"></div>
+                <div class="pin-dot2"></div>
+            </div>
+            <div class="pin-grid">
+                <button class="pin-btn2" data-k="1">1</button>
+                <button class="pin-btn2" data-k="2">2</button>
+                <button class="pin-btn2" data-k="3">3</button>
+                <button class="pin-btn2" data-k="4">4</button>
+                <button class="pin-btn2" data-k="5">5</button>
+                <button class="pin-btn2" data-k="6">6</button>
+                <button class="pin-btn2" data-k="7">7</button>
+                <button class="pin-btn2" data-k="8">8</button>
+                <button class="pin-btn2" data-k="9">9</button>
+                <div></div>
+                <button class="pin-btn2" data-k="0">0</button>
+                <button class="pin-btn2 del" data-k="del">⌫</button>
+            </div>
+            <div class="pin-error2" id="pinErr2"></div>
+            <button class="pin-cancel2" id="pinCancel2">ยกเลิก</button>
+        </div>
+    </div>
+
     <script>
-        // Check PIN early blocking render
+        // Early hide if already authenticated
         (function () {
-            const hasPin = sessionStorage.getItem('dev_access_pin') === '10210';
-            if (hasPin) {
-                // hide overlay early
+            if (sessionStorage.getItem('dev_access_pin') === '10210') {
                 const overlay = document.getElementById('pinOverlay');
                 if (overlay) overlay.style.display = 'none';
             }
         })();
 
-        // Handle PIN form
         document.addEventListener('DOMContentLoaded', () => {
             const hasPin = sessionStorage.getItem('dev_access_pin') === '10210';
             const overlay = document.getElementById('pinOverlay');
@@ -60,46 +607,92 @@
 
             if (hasPin) {
                 overlay.style.display = 'none';
-            } else {
-                if (app) app.style.display = 'none'; // Ensure underlying app is hidden
+                return;
+            }
 
-                const btn = document.getElementById('devPinBtn');
-                const input = document.getElementById('devPinInput');
-                const error = document.getElementById('devPinError');
+            if (app) app.style.display = 'none';
 
-                const checkPin = () => {
-                    if (input.value === '10210') {
+            // PIN logic
+            let pendingUserId = null;
+            let pin = '';
+            const CORRECT_PIN = '10210';
+            const modal = document.getElementById('pinModal2');
+            const dots = document.querySelectorAll('.pin-dot2');
+            const errEl = document.getElementById('pinErr2');
+
+            function updateDots() {
+                dots.forEach((d, i) => d.classList.toggle('filled', i < pin.length));
+            }
+
+            function openPin(userId, name, emoji, color) {
+                pendingUserId = userId;
+                pin = '';
+                errEl.textContent = '';
+                updateDots();
+                document.getElementById('pinTitle2').textContent = name;
+                const badge = document.getElementById('pinBadge2');
+                badge.textContent = emoji;
+                badge.style.background = color;
+                modal.classList.add('show');
+            }
+
+            function closePin() {
+                modal.classList.remove('show');
+                pendingUserId = null;
+                pin = '';
+            }
+
+            function shake() {
+                const card = document.getElementById('pinModalCard2');
+                card.animate([
+                    { transform: 'translateX(0)' }, { transform: 'translateX(-10px)' },
+                    { transform: 'translateX(10px)' }, { transform: 'translateX(-8px)' },
+                    { transform: 'translateX(8px)' }, { transform: 'translateX(0)' }
+                ], { duration: 400, easing: 'ease-in-out' });
+            }
+
+            // User card clicks
+            document.querySelectorAll('.user-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    openPin(
+                        card.dataset.user,
+                        card.dataset.name,
+                        card.dataset.emoji,
+                        card.dataset.color
+                    );
+                });
+            });
+
+            // Numpad
+            modal.addEventListener('click', e => {
+                const btn = e.target.closest('.pin-btn2');
+                if (!btn) return;
+                const k = btn.dataset.k;
+                if (k === 'del') { pin = pin.slice(0, -1); updateDots(); return; }
+                if (pin.length >= 5) return;
+                pin += k;
+                updateDots();
+                if (pin.length === 5) {
+                    if (pin === CORRECT_PIN) {
                         sessionStorage.setItem('dev_access_pin', '10210');
+                        // Store user selection for router
+                        if (pendingUserId) sessionStorage.setItem('quick_login_user', pendingUserId);
                         overlay.style.opacity = '0';
-                        overlay.style.transition = 'opacity 0.3s ease';
+                        overlay.style.transition = 'opacity 0.4s ease';
                         setTimeout(() => {
                             overlay.style.display = 'none';
                             if (app) app.style.display = 'block';
-                        }, 300);
+                        }, 400);
                     } else {
-                        error.style.display = 'block';
-                        input.value = '';
-                        input.focus();
-
-                        // shake effect
-                        overlay.children[0].animate([
-                            { transform: 'translateX(0px)' },
-                            { transform: 'translateX(-10px)' },
-                            { transform: 'translateX(10px)' },
-                            { transform: 'translateX(-10px)' },
-                            { transform: 'translateX(10px)' },
-                            { transform: 'translateX(0px)' }
-                        ], { duration: 400, easing: 'ease-in-out' });
+                        errEl.textContent = 'PIN ไม่ถูกต้อง ลองใหม่อีกครั้ง';
+                        shake();
+                        pin = '';
+                        setTimeout(() => updateDots(), 50);
                     }
-                };
+                }
+            });
 
-                btn.addEventListener('click', checkPin);
-                input.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') checkPin();
-                });
-
-                input.focus();
-            }
+            document.getElementById('pinCancel2').addEventListener('click', closePin);
         });
     </script>
 

@@ -6,7 +6,9 @@ const CustomersModule = {
         type: '',
         region: '',
         tier: '',
-        status: ''
+        status: '',
+        customerGroup: '',
+        assignedTo: ''
     },
 
     // Initialize module
@@ -100,7 +102,7 @@ const CustomersModule = {
                 <!-- Filters -->
                 <div class="card mb-4">
                     <div class="card-body">
-                        <div class="row g-3">
+                        <div class="row g-2">
                             <div class="col-md-3">
                                 <label class="form-label">ค้นหา</label>
                                 <input type="text" class="form-control" id="searchInput" 
@@ -108,46 +110,63 @@ const CustomersModule = {
                                     value="${this.currentFilters.search}">
                             </div>
                             <div class="col-md-2">
+                                <label class="form-label">กลุ่มลูกค้า</label>
+                                <select class="form-select" id="customerGroupFilter">
+                                    <option value="" ${this.currentFilters.customerGroup === '' ? 'selected' : ''}>ทั้งหมด</option>
+                                    <option value="ทหารบก" ${this.currentFilters.customerGroup === 'ทหารบก' ? 'selected' : ''}>รพ.กองทัพบก</option>
+                                    <option value="รพ.รัฐ" ${this.currentFilters.customerGroup === 'รพ.รัฐ' ? 'selected' : ''}>รพ.รัฐบาลอื่นๆ</option>
+                                    <option value="รพ.เอกชน" ${this.currentFilters.customerGroup === 'รพ.เอกชน' ? 'selected' : ''}>รพ.เอกชน</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">พนักงานผู้รับผิดชอบ</label>
+                                <select class="form-select" id="assignedToFilter">
+                                    <option value="">ทั้งหมด</option>
+                                    ${(() => { const users = Storage.get('users') || []; return users.map(u => `<option value="${u.id}" ${this.currentFilters.assignedTo === u.id ? 'selected' : ''}>${u.name}</option>`).join(''); })()}
+                                </select>
+                            </div>
+                            <div class="col-md-1">
                                 <label class="form-label">ประเภท</label>
                                 <select class="form-select" id="typeFilter">
                                     <option value="">ทั้งหมด</option>
-                                    <option value="government">รัฐบาล</option>
-                                    <option value="army">ทหาร</option>
-                                    <option value="private">เอกชน</option>
-                                    <option value="clinic">คลินิก</option>
+                                    <option value="government" ${this.currentFilters.type === 'government' ? 'selected' : ''}>รัฐบาล</option>
+                                    <option value="army" ${this.currentFilters.type === 'army' ? 'selected' : ''}>ทหาร</option>
+                                    <option value="private" ${this.currentFilters.type === 'private' ? 'selected' : ''}>เอกชน</option>
+                                    <option value="clinic" ${this.currentFilters.type === 'clinic' ? 'selected' : ''}>คลินิก</option>
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1">
                                 <label class="form-label">ภูมิภาค</label>
                                 <select class="form-select" id="regionFilter">
                                     <option value="">ทั้งหมด</option>
-                                    <option value="กลาง">กลาง</option>
-                                    <option value="เหนือ">เหนือ</option>
-                                    <option value="อีสาน">อีสาน</option>
-                                    <option value="ใต้">ใต้</option>
+                                    <option value="กลาง" ${this.currentFilters.region === 'กลาง' ? 'selected' : ''}>กลาง</option>
+                                    <option value="เหนือ" ${this.currentFilters.region === 'เหนือ' ? 'selected' : ''}>เหนือ</option>
+                                    <option value="อีสาน" ${this.currentFilters.region === 'อีสาน' ? 'selected' : ''}>อีสาน</option>
+                                    <option value="ใต้" ${this.currentFilters.region === 'ใต้' ? 'selected' : ''}>ใต้</option>
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1">
                                 <label class="form-label">Tier</label>
                                 <select class="form-select" id="tierFilter">
                                     <option value="">ทั้งหมด</option>
-                                    <option value="T1">T1</option>
-                                    <option value="T2">T2</option>
-                                    <option value="T3">T3</option>
-                                    <option value="T4">T4</option>
+                                    <option value="T1" ${this.currentFilters.tier === 'T1' ? 'selected' : ''}>T1</option>
+                                    <option value="T2" ${this.currentFilters.tier === 'T2' ? 'selected' : ''}>T2</option>
+                                    <option value="T3" ${this.currentFilters.tier === 'T3' ? 'selected' : ''}>T3</option>
+                                    <option value="T4" ${this.currentFilters.tier === 'T4' ? 'selected' : ''}>T4</option>
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1">
                                 <label class="form-label">สถานะ</label>
                                 <select class="form-select" id="statusFilter">
                                     <option value="">ทั้งหมด</option>
-                                    <option value="active">Active</option>
-                                    <option value="prospect">Prospect</option>
-                                    <option value="inactive">Inactive</option>
+                                    <option value="active" ${this.currentFilters.status === 'active' ? 'selected' : ''}>Active</option>
+                                    <option value="prospect" ${this.currentFilters.status === 'prospect' ? 'selected' : ''}>Prospect</option>
+                                    <option value="inactive" ${this.currentFilters.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                                    <option value="discontinue" ${this.currentFilters.status === 'discontinue' ? 'selected' : ''}>Discontinue</option>
                                 </select>
                             </div>
                             <div class="col-md-1 d-flex align-items-end">
-                                <button class="btn btn-outline-secondary w-100" onclick="CustomersModule.clearFilters()">
+                                <button class="btn btn-outline-secondary w-100" onclick="CustomersModule.clearFilters()" title="ล้างตัวกรองทั้งหมด">
                                     <i class="bi bi-x-circle"></i>
                                 </button>
                             </div>
@@ -164,12 +183,12 @@ const CustomersModule = {
                                     <tr>
                                         <th>#</th>
                                         <th>ชื่อหน่วยงาน</th>
-                                        <th>ประเภท</th>
-                                        <th>Tier</th>
+                                        <th>กลุ่มลูกค้า</th>
+                                        <th>ผู้รับผิดชอบ</th>
                                         <th>ภูมิภาค</th>
                                         <th>จังหวัด</th>
                                         <th>สถานะ</th>
-                                        <th>Assessment</th>
+                                        <th>จำนวนของ pipeline</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -197,13 +216,19 @@ const CustomersModule = {
     // Render customer table rows
     renderCustomerRows(customers) {
         return customers.map((customer, index) => {
-            const assessment = this.getCustomerAssessment(customer.id);
+            const pipelineCount = this.getCustomerPipelineCount(customer.id);
+            const users = Storage.get('users') || [];
+            const assignedUser = users.find(u => u.id === customer.assignedTo);
+            const assignedName = assignedUser ? assignedUser.name : '<span class="text-muted small">ยังไม่กำหนด</span>';
+
+            // Determine customer group label
             const typeLabels = {
                 'government': 'รัฐบาล',
                 'army': 'ทหาร',
                 'private': 'เอกชน',
                 'clinic': 'คลินิก'
             };
+            const groupLabel = customer.customerGroup || typeLabels[customer.type] || customer.type || 'ยังไม่กำหนด';
 
             return `
                 <tr>
@@ -211,16 +236,24 @@ const CustomersModule = {
                     <td>
                         <strong>${customer.name}</strong>
                     </td>
-                    <td><span class="badge bg-secondary">${typeLabels[customer.type] || customer.type}</span></td>
-                    <td><span class="badge ${Utils.getBadgeClass(customer.tier)}">${customer.tier}</span></td>
-                    <td>${customer.region}</td>
-                    <td>${customer.province}</td>
-                    <td><span class="badge ${Utils.getBadgeClass(customer.status)}">${customer.status}</span></td>
-                    <td>${assessment ? `<strong>${assessment.totalScore}</strong>/25` : '-'}</td>
+                    <td><span class="badge bg-secondary">${groupLabel}</span></td>
+                    <td>${assignedName}</td>
+                    <td>${customer.region || '<span class="text-muted small">ยังไม่กำหนด</span>'}</td>
+                    <td>${customer.province || '<span class="text-muted small">ยังไม่กำหนด</span>'}</td>
+                    <td>${customer.status ? `<span class="badge ${Utils.getBadgeClass(customer.status)}">${customer.status}</span>` : '<span class="text-muted small">ยังไม่กำหนด</span>'}</td>
+                    <td><strong>${pipelineCount}</strong></td>
                     <td>
-                        <button class="btn btn-sm btn-primary" onclick="Router.navigate('#/customers/${customer.id}')">
-                            <i class="bi bi-eye"></i> ดู
-                        </button>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-primary" onclick="Router.navigate('#/customers/${customer.id}')" title="ดูข้อมูล">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="CustomersModule.showEditForm('${customer.id}')" title="แก้ไข">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="CustomersModule.deleteCustomer('${customer.id}')" title="ลบ">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
@@ -231,13 +264,37 @@ const CustomersModule = {
     getFilteredCustomers() {
         let customers = Storage.get('customers');
 
+        // By default, hide discontinued customers unless explicitly filtered
+        if (!this.currentFilters.status) {
+            customers = customers.filter(c => c.status !== 'discontinue');
+        }
+
         // Apply search
         if (this.currentFilters.search) {
             const search = this.currentFilters.search.toLowerCase();
             customers = customers.filter(c =>
                 c.name.toLowerCase().includes(search) ||
-                c.province.toLowerCase().includes(search)
+                (c.province || '').toLowerCase().includes(search)
             );
+        }
+
+        // Apply customer group filter (กลุ่มลูกค้า)
+        if (this.currentFilters.customerGroup) {
+            customers = customers.filter(c => {
+                let grp = c.customerGroup || '';
+                // Fallback: derive from type if customerGroup not set
+                if (!grp && c.type) {
+                    if (c.type === 'army') grp = 'ทหารบก';
+                    else if (c.type === 'private') grp = 'รพ.เอกชน';
+                    else grp = 'รพ.รัฐ';
+                }
+                return grp === this.currentFilters.customerGroup;
+            });
+        }
+
+        // Apply assigned-to filter (พนักงานผู้รับผิดชอบ)
+        if (this.currentFilters.assignedTo) {
+            customers = customers.filter(c => c.assignedTo === this.currentFilters.assignedTo);
         }
 
         // Apply type filter
@@ -274,6 +331,12 @@ const CustomersModule = {
         };
     },
 
+    // Get customer pipeline (opportunity) count
+    getCustomerPipelineCount(customerId) {
+        const opps = Storage.query('opportunities', { customerId });
+        return opps.length;
+    },
+
     // Get customer assessment score
     getCustomerAssessment(customerId) {
         const assessments = Storage.query('assessmentScores', { customerId });
@@ -287,6 +350,8 @@ const CustomersModule = {
         const regionFilter = document.getElementById('regionFilter');
         const tierFilter = document.getElementById('tierFilter');
         const statusFilter = document.getElementById('statusFilter');
+        const customerGroupFilter = document.getElementById('customerGroupFilter');
+        const assignedToFilter = document.getElementById('assignedToFilter');
 
         if (searchInput) {
             searchInput.addEventListener('input', Utils.debounce((e) => {
@@ -295,10 +360,27 @@ const CustomersModule = {
             }, 300));
         }
 
+        // customerGroupFilter maps to currentFilters.customerGroup
+        if (customerGroupFilter) {
+            customerGroupFilter.addEventListener('change', (e) => {
+                this.currentFilters.customerGroup = e.target.value;
+                this.renderList();
+            });
+        }
+
+        // assignedToFilter maps to currentFilters.assignedTo
+        if (assignedToFilter) {
+            assignedToFilter.addEventListener('change', (e) => {
+                this.currentFilters.assignedTo = e.target.value;
+                this.renderList();
+            });
+        }
+
         [typeFilter, regionFilter, tierFilter, statusFilter].forEach(filter => {
             if (filter) {
                 filter.addEventListener('change', (e) => {
-                    this.currentFilters[e.target.id.replace('Filter', '')] = e.target.value;
+                    const key = e.target.id.replace('Filter', '');
+                    this.currentFilters[key] = e.target.value;
                     this.renderList();
                 });
             }
@@ -312,7 +394,9 @@ const CustomersModule = {
             type: '',
             region: '',
             tier: '',
-            status: ''
+            status: '',
+            customerGroup: '',
+            assignedTo: ''
         };
         this.renderList();
     },
@@ -406,7 +490,8 @@ const CustomersModule = {
             options: [
                 { value: 'active', label: 'Active' },
                 { value: 'prospect', label: 'Prospect' },
-                { value: 'inactive', label: 'Inactive' }
+                { value: 'inactive', label: 'Inactive' },
+                { value: 'discontinue', label: '⛔ Discontinue' }
             ]
         })}
                     </div>
@@ -415,7 +500,7 @@ const CustomersModule = {
                 ${FormsModule.generateFormField({
             type: 'select',
             name: 'assignedTo',
-            label: 'ผู้ดูแล',
+            label: 'ผู้รับผิดชอบ',
             value: customer?.assignedTo || '',
             required: true,
             options: FormsModule.getUserOptions()
@@ -499,18 +584,22 @@ const CustomersModule = {
                             <div class="col-md-8">
                                 <h2 class="mb-2">${customer.name}</h2>
                                 <div class="d-flex gap-2 flex-wrap">
-                                    <span class="badge bg-secondary">${customer.type}</span>
-                                    <span class="badge ${Utils.getBadgeClass(customer.tier)}">${customer.tier}</span>
-                                    <span class="badge ${Utils.getBadgeClass(customer.status)}">${customer.status}</span>
-                                    <span class="badge bg-info">${customer.region}</span>
+                                    ${customer.customerGroup ? `<span class="badge bg-primary">${customer.customerGroup}</span>` : ''}
+                                    ${customer.type ? `<span class="badge bg-secondary">${{ 'government': '\u0e23\u0e31\u0e10\u0e1a\u0e32\u0e25', 'army': '\u0e17\u0e2b\u0e32\u0e23', 'private': '\u0e40\u0e2d\u0e01\u0e0a\u0e19', 'clinic': '\u0e04\u0e25\u0e34\u0e19\u0e34\u0e01' }[customer.type] || customer.type}</span>` : ''}
+                                    ${customer.tier ? `<span class="badge ${Utils.getBadgeClass(customer.tier)}">${customer.tier}</span>` : ''}
+                                    ${customer.status ? `<span class="badge ${Utils.getBadgeClass(customer.status)}">${customer.status}</span>` : ''}
+                                    ${customer.region ? `<span class="badge bg-info">${customer.region}</span>` : ''}
                                 </div>
                                 <p class="text-muted mt-2 mb-0">
-                                    <i class="bi bi-geo-alt"></i> ${customer.province}
+                                    <i class="bi bi-geo-alt"></i> ${customer.province || '\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e01\u0e33\u0e2b\u0e19\u0e14'}
                                 </p>
                             </div>
-                            <div class="col-md-4 text-end">
+                            <div class="col-md-4 text-end d-flex gap-2 justify-content-end">
                                 <button class="btn btn-primary" onclick="CustomersModule.showEditForm('${customerId}')">
                                     <i class="bi bi-pencil"></i> แก้ไข
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="CustomersModule.deleteCustomer('${customerId}', true)">
+                                    <i class="bi bi-trash"></i> ลบ
                                 </button>
                             </div>
                         </div>
@@ -577,8 +666,15 @@ const CustomersModule = {
         `;
     },
 
+    // Helper to display value or 'ยังไม่กำหนด'
+    _orNA(val) {
+        if (val === undefined || val === null || val === '' || val === 'undefined') return '<span class="text-muted">ยังไม่กำหนด</span>';
+        return val;
+    },
+
     // Render info tab
     renderInfoTab(customer) {
+        const typeLabels = { 'government': 'รัฐบาล', 'army': 'ทหาร', 'private': 'เอกชน', 'clinic': 'คลินิก' };
         return `
             <div class="card">
                 <div class="card-body">
@@ -587,20 +683,24 @@ const CustomersModule = {
                             <h5 class="mb-3">ข้อมูลพื้นฐาน</h5>
                             <table class="table table-borderless">
                                 <tr>
-                                    <td class="text-muted" width="150">ชื่อหน่วยงาน:</td>
+                                    <td class="text-muted" width="160">ชื่อหน่วยงาน:</td>
                                     <td><strong>${customer.name}</strong></td>
                                 </tr>
                                 <tr>
+                                    <td class="text-muted">กลุ่มลูกค้า:</td>
+                                    <td>${this._orNA(customer.customerGroup)}</td>
+                                </tr>
+                                <tr>
                                     <td class="text-muted">ประเภท:</td>
-                                    <td>${customer.type}</td>
+                                    <td>${typeLabels[customer.type] ? typeLabels[customer.type] : this._orNA(customer.type)}</td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted">ภูมิภาค:</td>
-                                    <td>${customer.region}</td>
+                                    <td>${this._orNA(customer.region)}</td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted">จังหวัด:</td>
-                                    <td>${customer.province}</td>
+                                    <td>${this._orNA(customer.province)}</td>
                                 </tr>
                             </table>
                         </div>
@@ -608,15 +708,15 @@ const CustomersModule = {
                             <h5 class="mb-3">สถานะและการจัดการ</h5>
                             <table class="table table-borderless">
                                 <tr>
-                                    <td class="text-muted" width="150">Tier:</td>
-                                    <td><span class="badge ${Utils.getBadgeClass(customer.tier)}">${customer.tier}</span></td>
+                                    <td class="text-muted" width="160">Tier:</td>
+                                    <td>${customer.tier ? `<span class="badge ${Utils.getBadgeClass(customer.tier)}">${customer.tier}</span>` : this._orNA(null)}</td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted">สถานะ:</td>
-                                    <td><span class="badge ${Utils.getBadgeClass(customer.status)}">${customer.status}</span></td>
+                                    <td>${customer.status ? `<span class="badge ${Utils.getBadgeClass(customer.status)}">${customer.status}</span>` : this._orNA(null)}</td>
                                 </tr>
                                 <tr>
-                                    <td class="text-muted">ผู้ดูแล:</td>
+                                    <td class="text-muted">พนักงานผู้รับผิดชอบ:</td>
                                     <td>${this.getUserName(customer.assignedTo)}</td>
                                 </tr>
                                 <tr>
@@ -827,11 +927,33 @@ const CustomersModule = {
 
     // Get user name by ID
     getUserName(userId) {
+        if (!userId || userId === '' || userId === 'undefined') return '<span class="text-muted">ยังไม่กำหนด</span>';
         const user = Storage.getById('users', userId);
-        return user ? user.name : '-';
+        return user ? user.name : '<span class="text-muted">ยังไม่กำหนด</span>';
     },
 
-    // Show add contact form
+    // Delete customer
+    deleteCustomer(customerId, fromProfile = false) {
+        const customer = Storage.getById('customers', customerId);
+        if (!customer) {
+            FormsModule.showNotification('ไม่พบข้อมูลลูกค้า', 'error');
+            return;
+        }
+
+        const confirmed = confirm(`⚠️ ต้องการลบลูกค้า "${customer.name}" หรือไม่?\n\nข้อมูลที่เกี่ยวข้อง (ผู้ติดต่อ, Pipeline, ฯลฯ) จะยังคงอยู่\n\nการดำเนินการนี้ไม่สามารถย้อนกลับได้`);
+        if (!confirmed) return;
+
+        Storage.delete('customers', customerId);
+        FormsModule.showNotification(`ลบลูกค้า "${customer.name}" เรียบร้อยแล้ว`, 'success');
+
+        if (fromProfile) {
+            Router.navigate('#/customers');
+        } else {
+            this.renderList();
+        }
+    },
+
+
     showAddContactForm(customerId) {
         const customer = Storage.getById('customers', customerId);
         if (!customer) {

@@ -46,6 +46,11 @@ const PipelineModule = {
 
     // Calculate expected revenue
     calculateExpectedRevenue(value, stageId, budgetCode) {
+        // S8_WON = ยอดปิดจริง (เต็มจำนวน)
+        if (stageId === 'S8_WON') return Math.round(value);
+        // S9 = แพ้แล้ว ไม่มีรายได้
+        if (stageId === 'S9') return 0;
+        // S0-S7 = ประมาณการจาก Probability × Budget Weight
         const stage = this.STAGES.find(s => s.id === stageId);
         const budget = this.BUDGET_CODES[budgetCode || 'Level 4'];
         if (!stage || !budget) return 0;
@@ -213,6 +218,13 @@ const PipelineModule = {
 
     // Render pipeline board (Kanban)
     renderBoard() {
+        // Role check for UI rendering
+        const _currentUser = typeof Auth !== 'undefined' ? Auth.getCurrentUser() : window.currentUser;
+        const _isAdmin = _currentUser && _currentUser.role === 'admin';
+        const _roleBadge = _isAdmin
+            ? `<span class="badge bg-danger ms-2" title="ผู้ดูแลระบบ: เพิ่ม แก้ไข และลบได้"><i class="bi bi-shield-fill-check"></i> Admin: เพิ่ม / แก้ไข / ลบได้</span>`
+            : `<span class="badge bg-secondary ms-2" title="พนักงานขาย: เพิ่มรายการได้เท่านั้น ไม่สามารถแก้ไขหรือลบ"><i class="bi bi-person-fill"></i> Sale: เพิ่มได้ / แก้ไข-ลบไม่ได้</span>`;
+
         let opportunities = Storage.get('opportunities') || [];
 
         // Filter by Product Group if not ALL
@@ -268,8 +280,8 @@ const PipelineModule = {
             <div class="page-container">
                 <div class="page-header d-flex justify-content-between align-items-center">
                     <div>
-                        <h1><i class="bi bi-funnel"></i> Sales Pipeline V1.0</h1>
-                        <p class="text-muted mb-0">ติดตามโอกาสทางการขาย — S0-S8 | Level 1-5</p>
+                        <h1><i class="bi bi-funnel"></i> Sales Pipeline V1.0 ${_roleBadge}</h1>
+                        <p class="text-muted mb-0">ติดตามโอกาสทางการขาย — S0-S9 | Level 1-5</p>
                     </div>
                     <div class="d-flex align-items-center gap-3 flex-wrap justify-content-end">
                         <div class="d-flex gap-2 flex-wrap">
@@ -320,9 +332,9 @@ const PipelineModule = {
                     <div class="col-12 col-md-6 col-xl">
                         <div class="card shadow-sm stat-card" style="cursor: pointer; transition: transform 0.2s;" onclick="PipelineModule.renderStatsDrawer('budget69')" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
                             <div class="card-body py-3 px-2 text-center h-100">
-                                <p class="text-muted mb-1 fw-bold" style="font-size: 0.85rem;">💰 ลูกค้าที่มีงบปี 69</p>
+                                <p class="text-muted mb-1 fw-bold" style="font-size: 0.85rem;">🎯 กำลังเสนองาน ปี 69</p>
                                 <h4 class="text-success mb-0">${Utils.formatCurrency(stats.budget69Value)}</h4>
-                                <small class="text-muted" style="font-size: 0.75rem;">${stats.budget69Count} โครงการ</small>
+                                <small class="text-muted" style="font-size: 0.75rem;">${stats.budget69Count} โครงการ (Level 1, S0-S7)</small>
                             </div>
                         </div>
                     </div>
@@ -457,7 +469,7 @@ const PipelineModule = {
                         <div class="d-flex justify-content-between align-items-center">
                             <strong class="text-primary small">${Utils.formatCurrency(opp.value)}</strong>
                         </div>
-                    ` : '<small class="text-muted">ยังไม่ระบุมูลค่า</small>'}
+                    ` : '<span class="text-muted" style="font-size:0.75rem;">ยังไม่ระบุมูลค่า</span>'}
                     ${expectedRev > 0 ? `<div class="small text-success mb-1">Expected: ${Utils.formatCurrency(expectedRev)}</div>` : ''}
                     ${opp.remark || opp.detail ? `
                         <div class="small text-muted mt-1 p-1 bg-light rounded" style="font-size: 0.75rem; border-left: 2px solid #ffc107;">
@@ -465,9 +477,9 @@ const PipelineModule = {
                         </div>
                     ` : ''}
                     <div class="mt-1" title="วันที่เข้าพื้นที่ หรืออัปเดตข้อมูลล่าสุด">
-                        <small class="text-muted">
+                        <span class="text-muted" style="font-size:0.75rem;">
                             <i class="bi bi-clock-history"></i> ล่าสุด: ${Utils.formatDate(opp.updatedAt || opp.createdAt, 'short')}
-                        </small>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -475,7 +487,7 @@ const PipelineModule = {
     },
 
     // Render opportunity detail
-    renderDetail(oppId) {
+    renderDetail(oppId, isEditing = false) {
         const opp = Storage.getById('opportunities', oppId);
         if (!opp) return;
 
@@ -489,6 +501,22 @@ const PipelineModule = {
         let stageHistory = [];
         try { stageHistory = typeof opp.stageHistory === 'string' ? JSON.parse(opp.stageHistory) : (opp.stageHistory || []); } catch (e) { }
 
+        // Security check
+        const currentUser = typeof Auth !== 'undefined' ? Auth.getCurrentUser() : window.currentUser;
+        const isAdmin = currentUser && currentUser.role === 'admin';
+        const isLoggedIn = !!currentUser;
+        if (isEditing && !isAdmin) {
+            isEditing = false;
+        }
+
+        // Available salespeople — from Storage users (dynamic, no mock names)
+        const allUsers = Storage.get('users') || [];
+        const salespersonsList = allUsers.filter(u => ['sales', 'manager', 'management'].includes(u.role));
+        let selectedSales = [];
+        if (opp.assignedTo) {
+            selectedSales = opp.assignedTo.split(',').map(s => s.trim());
+        }
+
         // Create Offcanvas if it doesn't exist
         let offcanvasEl = document.getElementById('pipelineDetailOffcanvas');
         if (!offcanvasEl) {
@@ -500,104 +528,332 @@ const PipelineModule = {
             document.body.appendChild(offcanvasEl);
         }
 
-        offcanvasEl.innerHTML = `
-            <div class="offcanvas-header bg-light border-bottom">
-                <h5 class="offcanvas-title fw-bold">
-                    <i class="bi bi-file-earmark-text"></i> รายละเอียดโครงการ
-                </h5>
-                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-            </div>
-            <div class="offcanvas-body" style="background-color: #f8f9fa;">
-                <div class="mb-3">
-                    <h4 class="mb-1">${customer?.name || 'Unknown'}</h4>
-                    <div class="d-flex gap-2 flex-wrap mt-2">
-                        ${this.renderProductGroupBadge(productGroup)}
-                        ${this.renderStageBadge(opp.stage)}
-                        ${this.renderBudgetBadge(budgetCode)}
-                        <span class="badge ${Utils.getBadgeClass(opp.interest)}">${opp.interest}</span>
-                    </div>
+        if (isEditing) {
+            // Build budget year dropdown options
+            const _budgetYearOptions = (currentYear) => `
+                <option value="">— เลือกปี —</option>
+                <optgroup label="🏛️ งบราชการ (ปีงบประมาณไทย ต.ค.–ก.ย.)">
+                    <option value="2568" ${currentYear === '2568' ? 'selected' : ''}>2568 (งบราชการ ปีก่อน)</option>
+                    <option value="2569" ${currentYear === '2569' ? 'selected' : ''}>2569 (งบราชการ — ปีปัจจุบัน ✅)</option>
+                    <option value="2570" ${currentYear === '2570' ? 'selected' : ''}>2570 (งบราชการ ปีหน้า)</option>
+                    <option value="2571" ${currentYear === '2571' ? 'selected' : ''}>2571 (งบราชการ ปีถัดไป)</option>
+                    <option value="2572" ${currentYear === '2572' ? 'selected' : ''}>2572 (งบราชการ)</option>
+                </optgroup>
+                <optgroup label="🏢 งบเอกชน (ปีปฏิทิน ม.ค.–ธ.ค.)">
+                    <option value="2025" ${currentYear === '2025' ? 'selected' : ''}>2025 (งบเอกชน)</option>
+                    <option value="2026" ${currentYear === '2026' ? 'selected' : ''}>2026 (งบเอกชน — ปีปัจจุบัน ✅)</option>
+                    <option value="2027" ${currentYear === '2027' ? 'selected' : ''}>2027 (งบเอกชน)</option>
+                </optgroup>
+            `;
+            offcanvasEl.innerHTML = `
+                <div class="offcanvas-header bg-light border-bottom">
+                    <h5 class="offcanvas-title fw-bold">
+                        <i class="bi bi-pencil-square text-primary"></i> แก้ไขรายละเอียดโครงการ
+                    </h5>
+                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 </div>
-                
-                <div class="card mb-3 shadow-sm border-0 bg-white">
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <label class="text-muted small">มูลค่า</label>
-                                <div class="fw-bold fs-5 text-primary">${opp.value > 0 ? Utils.formatCurrency(opp.value) : 'ยังไม่ระบุ'}</div>
-                            </div>
-                            <div class="col-6">
-                                <label class="text-muted small">Expected Revenue</label>
-                                <div class="fw-bold fs-5 text-success">${Utils.formatCurrency(expectedRev)}</div>
-                            </div>
-                            <div class="col-6">
-                                <label class="text-muted small">ผลิตภัณฑ์</label>
-                                <div class="fw-bold">${opp.product}</div>
-                            </div>
-                            <div class="col-6">
-                                <label class="text-muted small">Stage Probability</label>
-                                <div class="fw-bold">${stageDef?.probability || 0}%</div>
-                            </div>
-                            <div class="col-6">
-                                <label class="text-muted small">ปีงบประมาณ</label>
-                                <div class="fw-bold">${opp.budgetYear || 'ยังไม่ระบุ'}</div>
-                            </div>
-                            <div class="col-6">
-                                <label class="text-muted small">พนักงานขาย</label>
-                                <div class="fw-bold">${opp.assignedTo}</div>
+                <div class="offcanvas-body" style="background-color: #f8f9fa;">
+                    <form onsubmit="PipelineModule.saveDetail(event, '${opp.id}')">
+                        <div class="mb-3">
+                            <h4 class="mb-1">${customer?.name || 'Unknown'}</h4>
+                            <div class="text-muted small">${opp.product}</div>
+                        </div>
+
+                        <!-- Expected Revenue editable field -->
+                        <div class="card mb-3 border-primary shadow-sm">
+                            <div class="card-body py-2 px-3">
+                                <label class="form-label fw-bold small text-primary mb-1">📊 Expected Revenue (บาท)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="editExpectedRevenue" id="editExpectedRev"
+                                        value="${opp.expectedRevenue !== undefined ? opp.expectedRevenue : expectedRev}"
+                                        min="0" step="1000" placeholder="ระบุหรือคำนวณอัตโนมัติ">
+                                    <button type="button" class="btn btn-outline-primary" onclick="PipelineModule._recalcExpectedRev()" title="คำนวณใหม่จาก Stage × มูลค่า × Budget">
+                                        <i class="bi bi-arrow-clockwise"></i> คำนวณ
+                                    </button>
+                                </div>
+                                <div class="form-text text-muted">แก้ไขได้โดยตรง หรือกด <strong>คำนวณ</strong> เพื่อคำนวณจาก Stage × มูลค่า × Budget Readiness</div>
                             </div>
                         </div>
-                        ${opp.salesStatus ? `
-                            <div class="mt-3 p-3 bg-light rounded border">
-                                <label class="text-muted small">สถานะ Sale</label>
-                                <div class="fw-bold">${opp.salesStatus}</div>
-                            </div>
-                        ` : ''}
-                        ${opp.remark ? `
-                            <div class="mt-2 p-3 bg-light rounded border">
-                                <label class="text-muted small">หมายเหตุ</label>
-                                <div>${opp.remark}</div>
-                            </div>
-                        ` : ''}
-                        ${opp.detail ? `
-                            <div class="mt-2 p-3 bg-light rounded border">
-                                <label class="text-muted small">รายละเอียด</label>
-                                <div>${opp.detail}</div>
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-                
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white fw-bold"><i class="bi bi-clock-history"></i> ประวัติ Stage</div>
-                    <div class="card-body p-0">
-                        <ul class="list-group list-group-flush">
-                            ${stageHistory.map(h => {
-            const color = this.STAGE_COLORS[h.stage] || '#9CA3AF';
-            const s = this.STAGES.find(s => s.id === h.stage);
-            return `
-                                    <li class="list-group-item bg-transparent">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <span class="badge rounded-pill" style="background:${color};color:white;min-width:32px;">${h.stage}</span>
-                                            <div>
-                                                <div class="fw-bold small">${s?.name || h.stage}</div>
-                                                <div class="text-muted small">${h.reason || ''}</div>
-                                                <div class="text-muted" style="font-size:0.75rem;">${Utils.formatDate(h.date, 'short')}</div>
-                                            </div>
+                        
+                        <div class="card mb-3 shadow-sm border-0 bg-white">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold small">Stage</label>
+                                        <select class="form-select" name="editStage" id="editStage" onchange="PipelineModule._recalcExpectedRev()">
+                                            ${this.STAGES.map(s => `<option value="${s.id}" ${s.id === opp.stage ? 'selected' : ''}>${s.id}: ${s.name} — ${s.nameTH}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold small">ระดับความพร้อมงบประมาณ (Budget Readiness)</label>
+                                        <select class="form-select" name="editBudgetCode" id="editBudgetCode" onchange="PipelineModule._onBudgetCodeChange(this,'editBudgetYear'); PipelineModule._recalcExpectedRev()">
+                                            <option value="Level 1" ${budgetCode === 'Level 1' ? 'selected' : ''}>✅ Level 1: มีงบปี 2569 รอประมูล (ปีปัจจุบัน)</option>
+                                            <option value="Level 2" ${budgetCode === 'Level 2' ? 'selected' : ''}>📋 Level 2: อยู่ในแผนงบประมาณ (ต้องระบุปี)</option>
+                                            <option value="Level 3" ${budgetCode === 'Level 3' ? 'selected' : ''}>🎯 Level 3: ตั้งเป้า Push เข้าแผนงบปี</option>
+                                            <option value="Level 4" ${budgetCode === 'Level 4' ? 'selected' : ''}>💭 Level 4: มีความต้องการ ยังไม่วางแผน</option>
+                                            <option value="Level 5" ${budgetCode === 'Level 5' ? 'selected' : ''}>🚀 Level 5: จัดหาด่วน ไม่อยู่ในแผน</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold small" id="editBudgetYearLabel">${budgetCode === 'Level 1' ? 'ปีงบประมาณ (2569 — ปีปัจจุบัน)' : budgetCode === 'Level 2' ? 'ปีงบประมาณ *' : 'ปีงบประมาณ'}</label>
+                                        <select class="form-select" name="editBudgetYear" id="editBudgetYear" ${budgetCode === 'Level 2' ? 'required' : ''}>
+                                            ${_budgetYearOptions(opp.budgetYear || (budgetCode === 'Level 1' ? '2569' : ''))}
+                                        </select>
+                                        <div class="form-text ${budgetCode === 'Level 1' ? 'text-success' : budgetCode === 'Level 2' ? 'text-warning fw-bold' : 'text-muted'}" id="editBudgetYearHint">
+                                            ${budgetCode === 'Level 1' ? 'Level 1 = งบปีปัจจุบัน 2569' : budgetCode === 'Level 2' ? '⚠️ Level 2 ต้องระบุปีงบประมาณ' : 'ไม่บังคับ (ระบุถ้าทราบ)'}
                                         </div>
-                                    </li>
-                                `;
-        }).join('')}
-                        </ul>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold small">มูลค่าโครงการ (บาท)</label>
+                                        <input type="number" class="form-control" name="editValue" id="editValue" value="${opp.value || 0}" oninput="PipelineModule._recalcExpectedRev()">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold small">พนักงานผู้รับผิดชอบ</label>
+                                        <div class="d-flex flex-wrap gap-3 p-2 border rounded bg-light">
+                                            ${salespersonsList.length === 0 ? '<small class="text-muted">ไม่พบข้อมูลพนักงาน</small>' : salespersonsList.map(u => `
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="editSalesperson" value="${u.name}" id="sp_${u.id}" ${selectedSales.includes(u.name) ? 'checked' : ''}>
+                                                    <label class="form-check-label" for="sp_${u.id}">${u.name}</label>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold small">หมายเหตุ</label>
+                                        <textarea class="form-control" name="editRemark" rows="3">${opp.remark || ''}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-save"></i> บันทึก</button>
+                            <button type="button" class="btn btn-light flex-fill border" onclick="PipelineModule.renderDetail('${opp.id}')">ยกเลิก</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+        } else {
+            offcanvasEl.innerHTML = `
+                <div class="offcanvas-header bg-light border-bottom">
+                    <h5 class="offcanvas-title fw-bold">
+                        <i class="bi bi-file-earmark-text"></i> รายละเอียดโครงการ
+                    </h5>
+                    <div class="d-flex align-items-center gap-2">
+                        ${isAdmin ? `<button class="btn btn-sm btn-outline-danger" onclick="PipelineModule.deleteDetail('${opp.id}')"><i class="bi bi-trash"></i> ลบ</button>
+                                     <button class="btn btn-sm btn-outline-primary" onclick="PipelineModule.renderDetail('${opp.id}', true)"><i class="bi bi-pencil"></i> แก้ไข</button>` : ''}
+                        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                     </div>
                 </div>
-            </div>
-        `;
+                <div class="offcanvas-body" style="background-color: #f8f9fa;">
+                    <div class="mb-3">
+                        <h4 class="mb-1">${customer?.name || 'Unknown'}</h4>
+                        <div class="d-flex gap-2 flex-wrap mt-2">
+                            ${this.renderProductGroupBadge(productGroup)}
+                            ${this.renderStageBadge(opp.stage)}
+                            ${this.renderBudgetBadge(budgetCode)}
+                            <span class="badge ${Utils.getBadgeClass(opp.interest)}">${opp.interest}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-3 shadow-sm border-0 bg-white">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="text-muted small">มูลค่า</label>
+                                    <div class="fw-bold fs-5 text-primary">${opp.value > 0 ? Utils.formatCurrency(opp.value) : 'ยังไม่ระบุ'}</div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small">Expected Revenue</label>
+                                    <div class="fw-bold fs-5 text-success">${Utils.formatCurrency(expectedRev)}</div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small">ผลิตภัณฑ์</label>
+                                    <div class="fw-bold">${opp.product}</div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small">Stage Probability</label>
+                                    <div class="fw-bold">${stageDef?.probability || 0}%</div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small">ปีงบประมาณ</label>
+                                    <div class="fw-bold">${opp.budgetYear || 'ยังไม่ระบุ'}</div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small">พนักงานผู้รับผิดชอบ</label>
+                                    <div class="fw-bold">${(() => {
+                    if (!opp.assignedTo) return '<span class="text-muted">ยังไม่กำหนด</span>';
+                    // If it looks like a user ID, resolve to name
+                    if (opp.assignedTo.startsWith('USR-')) {
+                        const u = Storage.getById('users', opp.assignedTo);
+                        return u ? u.name : opp.assignedTo;
+                    }
+                    return opp.assignedTo;
+                })()}</div>
+                                </div>
+                            </div>
+                            ${opp.salesStatus ? `
+                                <div class="mt-3 p-3 bg-light rounded border">
+                                    <label class="text-muted small">สถานะ Sale</label>
+                                    <div class="fw-bold">${opp.salesStatus}</div>
+                                </div>
+                            ` : ''}
+                            ${opp.remark ? `
+                                <div class="mt-2 p-3 bg-light rounded border">
+                                    <label class="text-muted small">หมายเหตุ</label>
+                                    <div>${opp.remark}</div>
+                                </div>
+                            ` : ''}
+                            ${opp.detail ? `
+                                <div class="mt-2 p-3 bg-light rounded border">
+                                    <label class="text-muted small">รายละเอียด</label>
+                                    <div>${opp.detail}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white fw-bold"><i class="bi bi-clock-history"></i> ประวัติ Stage</div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                ${stageHistory.map(h => {
+                    const color = this.STAGE_COLORS[h.stage] || '#9CA3AF';
+                    const s = this.STAGES.find(s => s.id === h.stage);
+                    return `
+                                        <li class="list-group-item bg-transparent">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="badge rounded-pill" style="background:${color};color:white;min-width:32px;">${h.stage}</span>
+                                                <div>
+                                                    <div class="fw-bold small">${s?.name || h.stage}</div>
+                                                    <div class="text-muted small">${h.reason || ''}</div>
+                                                    <div class="text-muted" style="font-size:0.75rem;">${Utils.formatDate(h.date, 'short')}</div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    `;
+                }).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
 
         if (window.bootstrap && bootstrap.Offcanvas) {
-            const offcanvas = new bootstrap.Offcanvas(offcanvasEl);
-            offcanvas.show();
+            // Check if offcanvas is not already open (so it doesn't flicker on simply turning edit mode on/off)
+            if (!offcanvasEl.classList.contains('show')) {
+                const offcanvas = new bootstrap.Offcanvas(offcanvasEl);
+                offcanvas.show();
+            }
         } else {
             console.error('Bootstrap Offcanvas is missing!');
+        }
+    },
+
+    // Save edited opportunity detail (Admin only)
+    saveDetail(event, oppId) {
+        event.preventDefault();
+        // Permission guard
+        const currentUser = typeof Auth !== 'undefined' ? Auth.getCurrentUser() : window.currentUser;
+        if (!currentUser || currentUser.role !== 'admin') {
+            this._showToast('❌ เฉพาะผู้ดูแลระบบเท่านั้นที่แก้ไขได้', 'danger');
+            return;
+        }
+        const formData = new FormData(event.target);
+        const opp = Storage.getById('opportunities', oppId);
+
+        if (!opp) return;
+
+        const newStage = formData.get('editStage');
+        const newBudgetCode = formData.get('editBudgetCode');
+        const newBudgetYear = (formData.get('editBudgetYear') || '').trim();
+        const newValue = parseFloat(formData.get('editValue')) || 0;
+        const newExpectedRevenue = parseFloat(formData.get('editExpectedRevenue'));
+        const newRemark = formData.get('editRemark');
+        const selectedSales = formData.getAll('editSalesperson');
+
+        // Validate: Level 2 requires a budget year
+        if (newBudgetCode === 'Level 2' && !newBudgetYear) {
+            this._showToast('⚠️ Level 2 ต้องระบุปีงบประมาณ เช่น 2570', 'warning');
+            return;
+        }
+
+        let isStageChanged = newStage !== opp.stage;
+
+        opp.stage = newStage;
+        opp.budgetCode = newBudgetCode;
+        opp.budgetYear = newBudgetYear;
+        opp.value = newValue;
+        opp.expectedRevenue = isNaN(newExpectedRevenue) ? this.calculateExpectedRevenue(newValue, newStage, newBudgetCode) : newExpectedRevenue;
+        opp.remark = newRemark;
+        opp.assignedTo = selectedSales.join(', ');
+
+        // Update probability based on new stage
+        const stageDef = this.STAGES.find(s => s.id === newStage);
+        if (stageDef) {
+            opp.probability = stageDef.probability;
+        }
+
+        // Add history if stage changed
+        if (isStageChanged) {
+            let history = [];
+            try { history = typeof opp.stageHistory === 'string' ? JSON.parse(opp.stageHistory) : (opp.stageHistory || []); } catch (e) { }
+            history.unshift({
+                stage: newStage,
+                date: new Date().toISOString(),
+                reason: 'Updated via Project Details manually'
+            });
+            opp.stageHistory = JSON.stringify(history);
+        }
+
+        opp.updatedAt = new Date().toISOString();
+
+        Storage.update('opportunities', opp.id, opp);
+
+        this._showToast('✅ บันทึกข้อมูลโครงการเรียบร้อยแล้ว');
+
+
+        // Refresh the board
+        this.renderBoard();
+
+        // Switch back to view mode
+        this.renderDetail(oppId, false);
+    },
+
+    // Delete an opportunity (Admin only)
+    deleteDetail(oppId) {
+        const opp = Storage.getById('opportunities', oppId);
+        if (!opp) return;
+
+        // Security check
+        const currentUser = typeof Auth !== 'undefined' ? Auth.getCurrentUser() : window.currentUser;
+        const isAdmin = currentUser && currentUser.role === 'admin';
+        if (!isAdmin) {
+            this._showToast('❌ คุณไม่มีสิทธิ์ลบโครงการนี้', 'danger');
+            return;
+        }
+
+        if (confirm(`คุณต้องการลบโครงการ "${opp.product} - ${opp.customerId}" ถาวรหรือไม่?\nการกระทำนี้ไม่สามารถกู้คืนได้`)) {
+            // Get all opportunities except the one to delete
+            let opportunities = Storage.get('opportunities') || [];
+            opportunities = opportunities.filter(o => o.id !== oppId);
+
+            // Save back to storage
+            Storage.set('opportunities', opportunities);
+
+            this._showToast('🗑️ ลบโครงการเรียบร้อยแล้ว');
+
+            // Close the offcanvas
+            const offcanvasEl = document.getElementById('pipelineDetailDrawer');
+            if (offcanvasEl) {
+                const offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
+                if (offcanvas) {
+                    offcanvas.hide();
+                }
+            }
+
+            // Refresh the board
+            this.renderBoard();
         }
     },
 
@@ -642,15 +898,17 @@ const PipelineModule = {
                 totalVal = filteredOpps.reduce((sum, o) => sum + (o.value || 0), 0);
                 break;
             case 'budget69':
-                filteredOpps = opportunities.filter(o => o.budgetYear === '2569');
-                title = 'ลูกค้าที่มีงบปี 69';
+                // Level 1 = มีงบปีปัจจุบัน 2569 + กำลังเสนอ (S0-S7 เท่านั้น)
+                filteredOpps = opportunities.filter(o => (o.budgetCode || 'Level 4') === 'Level 1' && !['S8_WON', 'S9'].includes(o.stage));
+                title = '🎯 กำลังเสนองาน ปี 69 (Level 1 — S0–S7)';
                 icon = 'bi-cash-coin';
                 colorTheme = 'success';
                 totalVal = filteredOpps.reduce((sum, o) => sum + (o.value || 0), 0);
                 break;
             case 'budget70':
-                filteredOpps = opportunities.filter(o => o.budgetYear === '2570' && ['Level 1', 'Level 2'].includes(o.budgetCode));
-                title = 'ลูกค้าที่มีงบปี 70 (เข้าแผนแล้ว)';
+                // Level 2 = อยู่ในแผนงบประมาณปีถัดไป ต้องระบุ budgetYear เช่น 2570
+                filteredOpps = opportunities.filter(o => (o.budgetCode || 'Level 4') === 'Level 2' && o.budgetYear === '2570');
+                title = '📋 ลูกค้าที่มีงบปี 70 (Level 2 — เข้าแผนแล้ว)';
                 icon = 'bi-graph-up-arrow';
                 colorTheme = 'info';
                 totalVal = filteredOpps.reduce((sum, o) => sum + (o.value || 0), 0);
@@ -765,8 +1023,14 @@ const PipelineModule = {
         }, 300);
     },
 
-    // Render add opportunity form
+    // Render add opportunity form (Sales and above can add)
     renderAddForm() {
+        // Permission guard — any logged-in user can add
+        const currentUser = typeof Auth !== 'undefined' ? Auth.getCurrentUser() : window.currentUser;
+        if (!currentUser) {
+            this._showToast('❌ กรุณาเข้าสู่ระบบก่อนเพิ่มรายการ', 'danger');
+            return;
+        }
         const customers = Storage.get('customers') || [];
 
         // Create Offcanvas if it doesn't exist
@@ -824,9 +1088,9 @@ const PipelineModule = {
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Budget Readiness *</label>
-                            <select class="form-select" name="budgetCode" required>
-                                <option value="Level 1">✅ Level 1: มีงบปี 69 รอประมูล</option>
-                                <option value="Level 2">📋 Level 2: อยู่ในแผนงบประมาณจริงแล้ว</option>
+                            <select class="form-select" name="budgetCode" id="addBudgetCode" required onchange="PipelineModule._onBudgetCodeChange(this,'addBudgetYear')">
+                                <option value="Level 1">✅ Level 1: มีงบปี 2569 รอประมูล (ปีปัจจุบัน)</option>
+                                <option value="Level 2">📋 Level 2: อยู่ในแผนงบประมาณ (ต้องระบุปี)</option>
                                 <option value="Level 3">🎯 Level 3: ตั้งเป้า Push เข้าแผนงบปี</option>
                                 <option value="Level 4">💭 Level 4: มีความต้องการ ยังไม่วางแผน</option>
                                 <option value="Level 5">🚀 Level 5: จัดหาด่วน ไม่อยู่ในแผน</option>
@@ -854,9 +1118,24 @@ const PipelineModule = {
                             <label class="form-label fw-bold">คาดว่าจะปิด *</label>
                             <input type="date" class="form-control" name="expectedClose" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">ปีงบประมาณ</label>
-                            <input type="text" class="form-control" name="budgetYear" placeholder="เช่น 2569">
+                        <div class="col-md-6" id="addBudgetYearWrapper">
+                            <label class="form-label fw-bold" id="addBudgetYearLabel">ปีงบประมาณ</label>
+                            <select class="form-select" name="budgetYear" id="addBudgetYear">
+                                <option value="">— เลือกปี —</option>
+                                <optgroup label="🏛️ งบราชการ (ปีงบประมาณไทย ต.ค.–ก.ย.)">
+                                    <option value="2568">2568 (งบราชการ ปีก่อน)</option>
+                                    <option value="2569" selected>2569 (งบราชการ — ปีปัจจุบัน ✅)</option>
+                                    <option value="2570">2570 (งบราชการ ปีหน้า)</option>
+                                    <option value="2571">2571 (งบราชการ ปีถัดไป)</option>
+                                    <option value="2572">2572 (งบราชการ)</option>
+                                </optgroup>
+                                <optgroup label="🏢 งบเอกชน (ปีปฏิทิน ม.ค.–ธ.ค.)">
+                                    <option value="2025">2025 (งบเอกชน)</option>
+                                    <option value="2026">2026 (งบเอกชน — ปีปัจจุบัน ✅)</option>
+                                    <option value="2027">2027 (งบเอกชน)</option>
+                                </optgroup>
+                            </select>
+                            <div class="form-text" id="addBudgetYearHint">ไม่บังคับ (ระบุถ้าทราบ)</div>
                         </div>
                     </div>
                     <div class="d-flex gap-2 mt-4">
@@ -957,13 +1236,27 @@ const PipelineModule = {
         bsModal.show();
     },
 
-    // Save new opportunity
+    // Save new opportunity (Sales and above can add)
     saveOpportunity(event) {
         event.preventDefault();
+        // Permission guard — any logged-in user can add
+        const currentUser = typeof Auth !== 'undefined' ? Auth.getCurrentUser() : window.currentUser;
+        if (!currentUser) {
+            this._showToast('❌ กรุณาเข้าสู่ระบบก่อนเพิ่มรายการ', 'danger');
+            return;
+        }
         const form = event.target;
         const data = new FormData(form);
         const stage = data.get('stage');
         const stageDef = this.STAGES.find(s => s.id === stage);
+        const budgetCode = data.get('budgetCode');
+        const budgetYear = (data.get('budgetYear') || '').trim();
+
+        // Validate: Level 2 requires a budget year
+        if (budgetCode === 'Level 2' && !budgetYear) {
+            this._showToast('⚠️ Level 2 ต้องระบุปีงบประมาณ เช่น 2570', 'warning');
+            return;
+        }
 
         const opp = {
             customerId: data.get('customerId'),
@@ -971,8 +1264,8 @@ const PipelineModule = {
             productGroup: data.get('productGroup'),
             value: parseInt(data.get('value') || '0'),
             stage: stage,
-            budgetCode: data.get('budgetCode'),
-            budgetYear: data.get('budgetYear') || '',
+            budgetCode: budgetCode,
+            budgetYear: budgetYear,
             probability: stageDef ? stageDef.probability : 0,
             expectedClose: data.get('expectedClose'),
             assignedTo: Auth.getCurrentUser()?.id || 'USR-001',
@@ -1006,6 +1299,50 @@ const PipelineModule = {
         }
     },
 
+    // Helper: When budgetCode changes, update budgetYear dropdown state
+    _onBudgetCodeChange(selectEl, yearSelectId) {
+        const val = selectEl.value;
+        const yearSelect = document.getElementById(yearSelectId);
+        const hintEl = document.getElementById(yearSelectId + 'Hint');
+        const labelEl = document.getElementById(yearSelectId + 'Label');
+        if (!yearSelect) return;
+
+        if (val === 'Level 1') {
+            // Level 1 = ปีปัจจุบัน 2569 — auto-select
+            yearSelect.value = '2569';
+            yearSelect.removeAttribute('required');
+            if (hintEl) { hintEl.textContent = 'Level 1 = งบปีปัจจุบัน 2569'; hintEl.className = 'form-text text-success'; }
+            if (labelEl) labelEl.textContent = 'ปีงบประมาณ (2569 — ปีปัจจุบัน)';
+        } else if (val === 'Level 2') {
+            // Level 2 = ต้องระบุปีงบประมาณ
+            yearSelect.value = '';
+            yearSelect.setAttribute('required', 'required');
+            if (hintEl) { hintEl.textContent = '⚠️ Level 2 ต้องระบุปีงบประมาณ เช่น 2570'; hintEl.className = 'form-text text-warning fw-bold'; }
+            if (labelEl) labelEl.textContent = 'ปีงบประมาณ *';
+        } else {
+            // Level 3-5: optional
+            yearSelect.value = '';
+            yearSelect.removeAttribute('required');
+            if (hintEl) { hintEl.textContent = 'ไม่บังคับ (ระบุถ้าทราบ)'; hintEl.className = 'form-text text-muted'; }
+            if (labelEl) labelEl.textContent = 'ปีงบประมาณ';
+        }
+    },
+
+    // Helper: Recalculate Expected Revenue live and write into the editable input
+    _recalcExpectedRev() {
+        const stageEl = document.getElementById('editStage');
+        const valueEl = document.getElementById('editValue');
+        const budgetEl = document.getElementById('editBudgetCode');
+        const revEl = document.getElementById('editExpectedRev');
+        if (!stageEl || !valueEl || !budgetEl || !revEl) return;
+
+        const value = parseFloat(valueEl.value) || 0;
+        const stageId = stageEl.value;
+        const budgetCode = budgetEl.value;
+        const rev = this.calculateExpectedRevenue(value, stageId, budgetCode);
+        revEl.value = rev;
+    },
+
     // Get pipeline statistics
     getPipelineStats(opportunities) {
         // 1. Work in Process (based on remark containing 'Work In Process')
@@ -1015,12 +1352,12 @@ const PipelineModule = {
         });
         const wipValue = wip.reduce((sum, o) => sum + (o.value || 0), 0);
 
-        // 2. ลูกค้าที่มีงบปี 69
-        const budget69 = opportunities.filter(o => o.budgetYear === '2569');
+        // 2. กำลังเสนองาน ปี 69 = Level 1 + S0-S7 (ไม่นับ S8_WON หรือ S9)
+        const budget69 = opportunities.filter(o => (o.budgetCode || 'Level 4') === 'Level 1' && !['S8_WON', 'S9'].includes(o.stage));
         const budget69Value = budget69.reduce((sum, o) => sum + (o.value || 0), 0);
 
-        // 3. ลูกค้าที่มีงบปี 70 ที่เข้าแผนแล้ว (Level 1 หรือ Level 2)
-        const budget70Planned = opportunities.filter(o => o.budgetYear === '2570' && ['Level 1', 'Level 2'].includes(o.budgetCode));
+        // 3. ลูกค้าที่มีงบปี 70 ที่เข้าแผนแล้ว = Level 2 + ระบุ budgetYear = 2570
+        const budget70Planned = opportunities.filter(o => (o.budgetCode || 'Level 4') === 'Level 2' && o.budgetYear === '2570');
         const budget70PlannedValue = budget70Planned.reduce((sum, o) => sum + (o.value || 0), 0);
 
         // 4. ลูกค้าขอ Demo / Trial

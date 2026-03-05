@@ -90,52 +90,34 @@ const MockData = {
         }
     },
 
-    // Generate users (6 roles)
+    // Generate users — real sales team
     generateUsers() {
         const users = [
             {
                 id: 'USR-001',
-                name: 'สมชาย ใจดี',
-                email: 'somchai@company.com',
+                name: 'พี่หม๋วย',
+                email: 'muay@company.com',
                 role: 'sales',
-                region: 'กลาง',
-                phone: '081-234-5678',
+                region: null,
+                phone: '',
                 createdAt: '2024-01-01T00:00:00Z'
             },
             {
                 id: 'USR-002',
-                name: 'วิชัย รักดี',
-                email: 'wichai@company.com',
-                role: 'manager',
-                region: 'กลาง',
-                phone: '081-234-5679',
+                name: 'พี่มายด์',
+                email: 'mind@company.com',
+                role: 'sales',
+                region: null,
+                phone: '',
                 createdAt: '2024-01-01T00:00:00Z'
             },
             {
                 id: 'USR-003',
-                name: 'ประเสริฐ มั่นคง',
-                email: 'prasert@company.com',
-                role: 'management',
+                name: 'พี่โอ๋',
+                email: 'o@company.com',
+                role: 'sales',
                 region: null,
-                phone: '081-234-5680',
-                createdAt: '2024-01-01T00:00:00Z'
-            },
-            {
-                id: 'USR-004',
-                name: 'สุดา พัฒนา',
-                email: 'suda@company.com',
-                role: 'po',
-                region: null,
-                phone: '081-234-5681',
-                createdAt: '2024-01-01T00:00:00Z'
-            },
-            {
-                id: 'USR-005',
-                name: 'ธนา เจริญสุข',
-                email: 'thana@company.com',
-                role: 'pm',
-                region: null,
-                phone: '081-234-5682',
+                phone: '',
                 createdAt: '2024-01-01T00:00:00Z'
             },
             {
@@ -144,13 +126,22 @@ const MockData = {
                 email: 'admin@company.com',
                 role: 'admin',
                 region: null,
-                phone: '081-234-5683',
+                phone: '',
+                createdAt: '2024-01-01T00:00:00Z'
+            },
+            {
+                id: 'USR-007',
+                name: 'ผู้บริหาร',
+                email: 'management@company.com',
+                role: 'management',
+                region: null,
+                phone: '',
                 createdAt: '2024-01-01T00:00:00Z'
             }
         ];
 
         users.forEach(user => Storage.add('users', user));
-        console.log('✓ Generated 6 users');
+        console.log(`✓ Generated ${users.length} users (real sales team)`);
     },
 
     // Generate customers
@@ -655,10 +646,10 @@ if (typeof window !== 'undefined') {
     if (window.Storage) {
         const customers = Storage.get('customers');
         const dataVersion = window.localStorage ? window.localStorage.getItem('mockDataVersion') : null;
-        let needsRegen = (!customers || customers.length === 0 || dataVersion !== 'v1.8');
+        let needsRegen = (!customers || customers.length === 0 || dataVersion !== 'v2.0');
 
         if (needsRegen && window.localStorage) {
-            window.localStorage.setItem('mockDataVersion', 'v1.8');
+            window.localStorage.setItem('mockDataVersion', 'v2.0');
         }
 
         // If we have old dummy data that lacks the customerGroup property, force regenerate

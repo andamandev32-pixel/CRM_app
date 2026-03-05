@@ -11,11 +11,16 @@ const FormsModule = {
         const drawerTitle = document.getElementById('drawerTitle');
         const drawerBody = document.getElementById('drawerBody');
 
+        if (!backdrop || !drawer || !drawerTitle || !drawerBody) {
+            console.error('Drawer elements not found in DOM');
+            return;
+        }
+
         drawerTitle.textContent = title;
         drawerBody.innerHTML = content;
 
-        backdrop.classList.add('show');
-        drawer.classList.add('show');
+        backdrop.style.display = 'block';
+        drawer.style.display = 'block';
 
         // Store modal reference
         this.currentModal = { title, content, options };
@@ -37,9 +42,11 @@ const FormsModule = {
         const backdrop = document.getElementById('modalBackdrop');
         const drawer = document.getElementById('drawer');
 
-        drawer.classList.remove('show');
-        backdrop.classList.remove('show');
-        backdrop.onclick = null;
+        if (drawer) drawer.style.display = 'none';
+        if (backdrop) {
+            backdrop.style.display = 'none';
+            backdrop.onclick = null;
+        }
 
         this.currentModal = null;
     },
@@ -269,13 +276,15 @@ const FormsModule = {
         `;
     },
 
-    // Generate customer dropdown options
+    // Generate customer dropdown options (excludes discontinued customers)
     getCustomerOptions() {
         const customers = Storage.get('customers') || [];
-        return customers.map(c => ({
-            value: c.id,
-            label: c.name
-        }));
+        return customers
+            .filter(c => c.status !== 'discontinue')
+            .map(c => ({
+                value: c.id,
+                label: c.name
+            }));
     },
 
     // Generate user dropdown options

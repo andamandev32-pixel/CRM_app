@@ -145,6 +145,16 @@ const STSApp = {
                     </div>
                 </div>
             </div>
+
+            <!-- Drawer / Side Modal for Forms -->
+            <div id="modalBackdrop" class="modal-backdrop" onclick="FormsModule.closeModal()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1040;"></div>
+            <div id="drawer" style="display:none; position:fixed; top:0; right:0; width:480px; max-width:100vw; height:100vh; background:#fff; z-index:1050; box-shadow:-4px 0 24px rgba(0,0,0,0.15); overflow-y:auto; padding:0; transition:transform .3s ease;">
+                <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
+                    <h5 id="drawerTitle" class="mb-0 fw-semibold"></h5>
+                    <button type="button" class="btn-close" onclick="FormsModule.closeModal()"></button>
+                </div>
+                <div id="drawerBody" class="p-4"></div>
+            </div>
         `;
 
         // Update notification count
@@ -217,7 +227,7 @@ const STSApp = {
                                     <span class="logo-subtitle">Meditech Solution</span>
                                 </div>
                             </div>
-                            <p class="text-muted">ระบบติดตามการขาย HIS & Queue</p>
+                            <p class="text-muted">ระบบติดตามการขาย B2B Phototype</p>
                         </div>
                         
                         <form id="loginForm">
@@ -241,45 +251,127 @@ const STSApp = {
                         <hr>
                         
                         <div class="text-center">
-                            <p class="text-muted small mb-2">ทดสอบระบบ (คลิกเพื่อเข้าสู่ระบบ):</p>
+                            <p class="text-muted small mb-2">เข้าสู่ระบบด่วน (ป้อน PIN):</p>
                             <div class="d-grid gap-2">
-                                <button class="btn btn-sm btn-outline-primary switch-user-btn" data-user-id="USR-001">
-                                    👨‍💼 พนักงานขาย (somchai@company.com)
+                                <button class="btn btn-sm btn-outline-primary quick-login-btn" data-user-id="USR-001" data-user-name="พี่หม๋วย">
+                                    👩‍💼 พี่หม๋วย (พนักงานขาย)
                                 </button>
-                                <button class="btn btn-sm btn-outline-primary switch-user-btn" data-user-id="USR-002">
-                                    👔 ผู้จัดการ (wichai@company.com)
+                                <button class="btn btn-sm btn-outline-primary quick-login-btn" data-user-id="USR-002" data-user-name="พี่มายด์">
+                                    👩‍💼 พี่มายด์ (พนักงานขาย)
                                 </button>
-                                <button class="btn btn-sm btn-outline-primary switch-user-btn" data-user-id="USR-003">
-                                    🎯 ผู้บริหาร (prasert@company.com)
+                                <button class="btn btn-sm btn-outline-primary quick-login-btn" data-user-id="USR-003" data-user-name="พี่โอ๋">
+                                    👩‍💼 พี่โอ๋ (พนักงานขาย)
                                 </button>
-                                <button class="btn btn-sm btn-outline-success switch-user-btn" data-user-id="USR-004">
-                                    🎨 Product Owner (suda@company.com)
+                                <button class="btn btn-sm btn-outline-warning quick-login-btn" data-user-id="USR-007" data-user-name="ผู้บริหาร">
+                                    👔 ผู้บริหาร
                                 </button>
-                                <button class="btn btn-sm btn-outline-info switch-user-btn" data-user-id="USR-005">
-                                    📊 Project Manager (thana@company.com)
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger switch-user-btn" data-user-id="USR-006">
-                                    🔧 Admin (admin@company.com)
+                                <button class="btn btn-sm btn-outline-danger quick-login-btn" data-user-id="USR-006" data-user-name="Admin System">
+                                    🔧 Admin
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- PIN Modal -->
+            <div id="pinModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
+                <div style="background:#fff; border-radius:16px; padding:2rem; width:300px; box-shadow:0 8px 32px rgba(0,0,0,0.25); text-align:center;">
+                    <h6 class="mb-1" id="pinModalTitle">เข้าสู่ระบบ</h6>
+                    <p class="text-muted small mb-3" id="pinModalSubtitle">ป้อน PIN 4 หลักเพื่อเข้าสู่ระบบ</p>
+                    <div class="d-flex justify-content-center gap-3 mb-3">
+                        <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #0D6EFD;background:#fff;transition:background .15s;"></div>
+                        <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #0D6EFD;background:#fff;transition:background .15s;"></div>
+                        <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #0D6EFD;background:#fff;transition:background .15s;"></div>
+                        <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #0D6EFD;background:#fff;transition:background .15s;"></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.75rem;">
+                        <button class="btn btn-light pin-key fw-semibold fs-5" data-key="1" style="border-radius:10px;">1</button>
+                        <button class="btn btn-light pin-key fw-semibold fs-5" data-key="2" style="border-radius:10px;">2</button>
+                        <button class="btn btn-light pin-key fw-semibold fs-5" data-key="3" style="border-radius:10px;">3</button>
+                        <button class="btn btn-light pin-key fw-semibold fs-5" data-key="4" style="border-radius:10px;">4</button>
+                        <button class="btn btn-light pin-key fw-semibold fs-5" data-key="5" style="border-radius:10px;">5</button>
+                        <button class="btn btn-light pin-key fw-semibold fs-5" data-key="6" style="border-radius:10px;">6</button>
+                        <button class="btn btn-light pin-key fw-semibold fs-5" data-key="7" style="border-radius:10px;">7</button>
+                        <button class="btn btn-light pin-key fw-semibold fs-5" data-key="8" style="border-radius:10px;">8</button>
+                        <button class="btn btn-light pin-key fw-semibold fs-5" data-key="9" style="border-radius:10px;">9</button>
+                        <div></div>
+                        <button class="btn btn-light pin-key fw-semibold fs-5" data-key="0" style="border-radius:10px;">0</button>
+                        <button class="btn btn-light pin-key fw-semibold" data-key="del" style="border-radius:10px;">⌫</button>
+                    </div>
+                    <div id="pinError" class="text-danger small mb-2" style="min-height:1.2em;"></div>
+                    <button class="btn btn-outline-secondary btn-sm w-100" id="pinCancelBtn">ยกเลิก</button>
+                </div>
+            </div>
         `;
+
+        // --- PIN Logic ---
+        let pendingUserId = null;
+        let pinEntry = '';
+        const CORRECT_PIN = '1234';
+
+        const pinModal = document.getElementById('pinModal');
+        const pinErrorEl = document.getElementById('pinError');
+        const pinDotEls = document.querySelectorAll('.pin-dot');
+
+        function updatePinDots() {
+            pinDotEls.forEach((dot, i) => {
+                dot.style.background = i < pinEntry.length ? '#0D6EFD' : '#fff';
+            });
+        }
+
+        function openPinModal(userId, userName) {
+            pendingUserId = userId;
+            pinEntry = '';
+            pinErrorEl.textContent = '';
+            updatePinDots();
+            document.getElementById('pinModalTitle').textContent = userName;
+            pinModal.style.display = 'flex';
+        }
+
+        function closePinModal() {
+            pinModal.style.display = 'none';
+            pendingUserId = null;
+            pinEntry = '';
+        }
+
+        // Quick login buttons → open PIN modal
+        document.querySelectorAll('.quick-login-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                openPinModal(btn.dataset.userId, btn.dataset.userName);
+            });
+        });
+
+        // PIN keypad handler
+        pinModal.addEventListener('click', (e) => {
+            const key = e.target.closest('.pin-key');
+            if (!key) return;
+            const val = key.dataset.key;
+            if (val === 'del') {
+                pinEntry = pinEntry.slice(0, -1);
+                updatePinDots();
+            } else if (pinEntry.length < 4) {
+                pinEntry += val;
+                updatePinDots();
+                if (pinEntry.length === 4) {
+                    if (pinEntry === CORRECT_PIN) {
+                        closePinModal();
+                        Auth.switchUser(pendingUserId);
+                    } else {
+                        pinErrorEl.textContent = 'PIN ไม่ถูกต้อง ลองอีกครั้ง';
+                        pinEntry = '';
+                        updatePinDots();
+                    }
+                }
+            }
+        });
+
+        document.getElementById('pinCancelBtn').addEventListener('click', closePinModal);
 
         // Handle login form
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             this.handleLogin();
-        });
-
-        // Handle quick login buttons
-        document.querySelectorAll('.switch-user-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const userId = btn.dataset.userId;
-                Auth.switchUser(userId);
-            });
         });
     },
 

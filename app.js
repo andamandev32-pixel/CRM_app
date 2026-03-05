@@ -357,6 +357,7 @@ function getStatusBadge(status) {
         'active': '<span class="badge badge-success">Active</span>',
         'prospect': '<span class="badge badge-warning">Prospect</span>',
         'inactive': '<span class="badge badge-gray">Inactive</span>',
+        'discontinue': '<span class="badge" style="background:#6b46c1;color:#fff;">Discontinue</span>',
         'pending': '<span class="badge badge-warning">รออนุมัติ</span>',
         'approved': '<span class="badge badge-success">อนุมัติแล้ว</span>',
         'rejected': '<span class="badge badge-danger">ปฏิเสธ</span>',

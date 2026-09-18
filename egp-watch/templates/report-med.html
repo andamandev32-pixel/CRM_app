@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ตลาดระบบยาในโรงพยาบาล — e-GP 2568–2569</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap">
+<style>
+/* ============================================================================
+   medication-market-report.html
+   รายงานวิเคราะห์ตลาดระบบยาในโรงพยาบาล จากประกาศจัดซื้อจัดจ้าง e-GP
+   ไฟล์เดียวจบ ทำงานบน file:// ไม่ต้อง build ไม่ต้องรัน server
+   โทนสี: เขียว-ขาว แบบ LINE for Business (LINE Green #06C755 บนพื้นขาว)
+   โครงสร้าง/สเปกคอมโพเนนต์ยกจาก css/sts-main.css ของ CRM app เพื่อให้ใช้งานคุ้นมือ
+   ========================================================================= */
+
+:root{
+
+  /* --- LINE green palette --- */
+  --green:#06C755;            /* LINE Green ตัวหลัก */
+  --green-dark:#05A544;       /* hover / ตัวอักษรบนพื้นอ่อน */
+  --green-deep:#037A32;       /* หัวข้อเข้ม */
+  --green-light:#E8F9EF;      /* พื้นอ่อน badge/active */
+  --green-50:#F3FCF7;
+  --green-gradient:linear-gradient(135deg,#06C755 0%,#04913D 100%);
+
+  /* --- neutral: ยกสเกลจาก css/sts-main.css --- */
+  --bg-body:#FFFFFF; --bg-alt:#F7F9F8; --bg-surface:#FFFFFF;
+  --gray-50:#F9FAFB; --gray-100:#F2F4F7; --gray-200:#EAECF0; --gray-300:#D0D5DD;
+  --gray-400:#98A2B3; --gray-500:#667085; --gray-600:#475467; --gray-700:#344054;
+  --gray-800:#1D2939; --gray-900:#101828;
+
+  --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+  --shadow:0 4px 6px -1px rgba(16,24,40,.1),0 2px 4px -1px rgba(16,24,40,.06);
+  --shadow-md:0 10px 15px -3px rgba(16,24,40,.1),0 4px 6px -2px rgba(16,24,40,.05);
+  --shadow-green:0 4px 14px 0 rgba(6,199,85,.28);
+
+  --radius-sm:6px; --radius:12px; --radius-lg:16px; --radius-pill:9999px;
+  --amber:#F79009; --red:#F04438; --cyan:#0891B2; --purple:#7F56D9;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg-alt); color:var(--gray-900);
+  font-family:'Sarabun','Leelawadee UI','Tahoma',system-ui,sans-serif;
+  font-size:14px;
+  /* 1.7 ไม่ใช่ 1.5 — สระบน/ล่างและวรรณยุกต์ไทยโดนตัดที่ 1.5 */
+  line-height:1.7;
+}
+h1,h2,h3,h4{margin:0;font-weight:700;line-height:1.4}
+p{margin:0 0 .5em}
+a{color:var(--green-dark);text-decoration:none}
+a:hover{text-decoration:underline}
+button,input,select{font:inherit;color:inherit}
+[hidden]{display:none !important}
+.wrap{max-width:1400px;margin:0 auto;padding:0 20px}
+
+.ic{width:1em;height:1em;flex:none;vertical-align:-.14em;fill:none;stroke:currentColor;
+    stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.ic-lg{width:1.3em;height:1.3em}
+
+/* ---------- header: ขาว-เขียว แบบ LINE for Business -------------------------- */
+header{background:var(--bg-surface);color:var(--gray-900);padding:24px 0 0;
+  border-bottom:1px solid var(--gray-200)}
+header h1{font-size:26px;display:flex;align-items:center;gap:12px;color:var(--gray-900)}
+header h1 .ic{color:var(--green)}
+
+/* แทปแบบขีดเส้นใต้ ไม่ใช่ pill — ให้เข้ากับหัวขาวแบบ LINE for Business */
+nav.tabs{display:flex;gap:10px;margin-top:20px;overflow-x:auto}
+nav.tabs button{
+  background:transparent;border:none;border-bottom:3px solid transparent;cursor:pointer;
+  white-space:nowrap;padding:.7rem 1.1rem;border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+  color:var(--gray-600);font-weight:500;display:flex;align-items:center;gap:.5rem;
+  transition:all .2s ease;
+}
+nav.tabs button:hover{background:var(--green-50);color:var(--green-dark)}
+nav.tabs button[aria-selected="true"]{
+  color:var(--green-dark);border-bottom-color:var(--green);font-weight:700}
+nav.tabs .n{background:var(--gray-100);color:var(--gray-600);border-radius:var(--radius-pill);
+  padding:0 .5em;font-size:12px;font-weight:600}
+nav.tabs button[aria-selected="true"] .n{background:var(--green-light);color:var(--green-deep)}
+main.wrap{padding:32px 20px 64px}   /* .wrap มี specificity สูงกว่า main จึงต้องระบุคู่กัน */
+
+/* ---------- ท้ายเพจ: ขอบเขตรายงาน + ที่มาข้อมูล ----------------------------- */
+.foot{margin-top:8px;padding:22px 0 0;border-top:1px solid var(--gray-200);
+  color:var(--gray-500);font-size:12.5px}
+.foot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:18px 34px}
+.foot h4{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--green-deep);margin-bottom:.3rem}
+.sub{color:var(--gray-600);margin:0;line-height:1.75}
+.sub code,.srcline code,.foot code{background:var(--green-50);color:var(--green-deep);
+  padding:1px 6px;border-radius:var(--radius-sm);
+  font-family:ui-monospace,Consolas,monospace;font-size:12px}
+.srcline{display:flex;flex-direction:column;gap:3px;color:var(--gray-500);line-height:1.75}
+.srcline b{color:var(--gray-800);font-weight:600}
+.foot-note{margin:16px 0 0;padding-top:13px;border-top:1px dashed var(--gray-200);
+  color:var(--gray-400)}
+
+/* ---------- cards ----------------------------------------------------------- */
+.card{background:var(--bg-surface);border:1px solid var(--gray-200);
+  border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;
+  transition:transform .2s ease,box-shadow .2s ease;margin-bottom:24px}
+.card-header{background:transparent;border-bottom:1px solid var(--gray-200);
+  padding:1.05rem 1.5rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.card-header h2{font-size:16.5px}
+.card-header .hint{color:var(--gray-500);font-size:12.5px;font-weight:400;margin-left:auto}
+.card-body{padding:1.5rem}
+.card-body.tight{padding:.5rem 1.5rem 1.25rem}
+
+/* ---------- KPI ------------------------------------------------------------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:16px;margin-bottom:24px}
+.kpi{background:var(--bg-surface);border:1px solid var(--gray-200);border-radius:var(--radius-lg);
+  padding:16px 18px;box-shadow:var(--shadow-sm);border-top:3px solid var(--green)}
+.kpi .k{color:var(--gray-500);font-size:12.5px;font-weight:500}
+.kpi .v{font-size:23px;font-weight:700;color:var(--gray-900);line-height:1.25;margin-top:2px}
+.kpi .u{font-size:12.5px;color:var(--gray-400);font-weight:400}
+.kpi.hot{border-top-color:var(--amber);background:#FFFAF0}
+.kpi.hot .v{color:#B54708}
+
+/* ---------- badges ---------------------------------------------------------- */
+.badge{display:inline-flex;align-items:center;gap:.3em;padding:.34em .75em;
+  border-radius:var(--radius-pill);font-weight:600;font-size:11.5px;
+  letter-spacing:.02em;line-height:1.5;white-space:nowrap}
+.b-green{background:var(--green-light);color:var(--green-deep)}
+.b-gray{background:var(--gray-100);color:var(--gray-600)}
+.b-amber{background:#FEF0C7;color:#B54708}
+.b-red{background:#FEE4E2;color:#B42318}
+.b-forest{background:var(--green-deep);color:#fff}
+.b-mint{background:#D7F5E4;color:var(--green-deep);border:1px solid #A6E9C3}
+/* Tier — สีเดียวกับ badgeClass ใน js/data/tier_config.js */
+.t-T1{background:#FEE4E2;color:#B42318}
+.t-T2{background:#FEF0C7;color:#B54708}
+.t-T3{background:var(--green-light);color:var(--green-deep)}
+.t-T4{background:var(--gray-100);color:var(--gray-600)}
+
+/* ---------- ตาราง ----------------------------------------------------------- */
+.tbl-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+thead th{background:var(--green-50);color:var(--gray-500);font-weight:600;
+  text-transform:uppercase;font-size:11px;letter-spacing:.05em;
+  padding:.7rem 1rem;border-bottom:2px solid var(--green-light);
+  text-align:left;white-space:nowrap;position:sticky;top:0;z-index:2}
+tbody td{padding:.7rem 1rem;vertical-align:top;color:var(--gray-700);
+  border-bottom:1px solid var(--gray-100)}
+tbody tr:hover{background:var(--green-50)}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+th.num{text-align:right}
+.mono{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--gray-500)}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--green-dark)}
+th.sortable::after{content:'';opacity:.35;margin-left:.35em}
+th.sortable[data-dir="asc"]::after{content:'▲';opacity:.9}
+th.sortable[data-dir="desc"]::after{content:'▼';opacity:.9}
+
+/* ---------- แถบสัดส่วน ------------------------------------------------------ */
+.grp{display:grid;gap:9px}
+.grow{display:grid;grid-template-columns:minmax(150px,1.5fr) 62px 118px 1fr;gap:12px;
+  align-items:center;cursor:pointer;padding:5px 8px;margin:0 -8px;
+  border-radius:var(--radius-sm);transition:background .15s ease}
+.grow:hover{background:var(--green-50)}
+.grow .lab{font-weight:500;font-size:13px;display:flex;align-items:center;gap:.45em;min-width:0}
+.grow .lab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grow .cnt{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;font-size:13px}
+.grow .amt{text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--gray-500)}
+.bar{height:9px;background:var(--gray-100);border-radius:var(--radius-pill);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--green);border-radius:var(--radius-pill)}
+.bar.b1 i{background:var(--red)} .bar.b2 i{background:var(--amber)}
+.bar.b3 i{background:var(--green)} .bar.b4 i{background:var(--gray-400)}
+.bar.bp i{background:#5BD98B} .bar.bc i{background:var(--green-dark)}
+.bar.bg i{background:var(--green-dark)}
+
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:24px}
+.g2>.card{margin-bottom:0}
+
+.callout{border-radius:var(--radius-lg);padding:1rem 1.35rem;margin-bottom:24px;font-size:13px}
+.co-amber{background:#FFFAF0;border:1px solid #FEC84B;color:#93370D}
+.co-green{background:var(--green-light);border:1px solid #8CE3B0;color:var(--green-deep)}
+.callout b{font-weight:700}
+
+/* ---------- filters --------------------------------------------------------- */
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:12px}
+.fld{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fld label{font-size:11.5px;font-weight:600;color:var(--gray-500);
+  text-transform:uppercase;letter-spacing:.04em}
+.fld input,.fld select{width:100%;padding:.5rem .7rem;border:1px solid var(--gray-300);
+  border-radius:var(--radius-sm);background:#fff;font-size:13px;min-width:0}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--green);
+  box-shadow:0 0 0 3px rgba(6,199,85,.18)}
+.fld.wide{grid-column:span 2}
+.rng{display:flex;gap:6px;align-items:center}
+.rng input{width:100%}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+.chip{border:1px solid var(--gray-300);background:#fff;border-radius:var(--radius-pill);
+  padding:.3rem .8rem;font-size:12.5px;cursor:pointer;transition:all .15s ease;
+  display:inline-flex;align-items:center;gap:.35em}
+.chip:hover{border-color:var(--green);color:var(--green-dark)}
+.chip[aria-pressed="true"]{background:var(--green);border-color:var(--green);
+  color:#fff;box-shadow:var(--shadow-green)}
+.chip .n{opacity:.65;font-size:11.5px}
+
+.btn{border-radius:var(--radius-pill);padding:.55rem 1.35rem;font-weight:600;
+  border:none;cursor:pointer;transition:all .2s ease;letter-spacing:.01em;
+  display:inline-flex;align-items:center;gap:.45em;font-size:13px}
+.btn-primary{background:var(--green);color:#fff;box-shadow:var(--shadow-green)}
+.btn-primary:hover{background:var(--green-dark);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.btn-ghost{background:var(--gray-100);color:var(--gray-600)}
+.btn-ghost:hover{background:var(--gray-200);color:var(--gray-900)}
+
+.resbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:.85rem 1.5rem;background:var(--green-50);
+  border-top:1px solid var(--green-light);border-bottom:1px solid var(--green-light)}
+.resbar .big{font-size:16px;font-weight:700;color:var(--green-dark)}
+.resbar .sep{color:var(--gray-300)}
+.resbar .push{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+.pname{font-weight:500;color:var(--gray-900);display:block;max-width:56ch}
+.rowbadges{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.kw{font-size:11px;color:var(--gray-400)}
+.empty{padding:3rem 1.5rem;text-align:center;color:var(--gray-500)}
+details.src,details.prod{margin-bottom:20px}
+details.src>summary,details.prod>summary{cursor:pointer;font-weight:600;padding:.85rem 1.5rem;
+  background:var(--bg-surface);border:1px solid var(--gray-200);border-radius:var(--radius-lg);
+  list-style:none;display:flex;align-items:center;gap:.5rem}
+details>summary::-webkit-details-marker{display:none}
+details.src[open]>summary,details.prod[open]>summary{
+  border-radius:var(--radius-lg) var(--radius-lg) 0 0;border-bottom:none}
+details.src .card,details.prod .card{border-radius:0 0 var(--radius-lg) var(--radius-lg);margin-bottom:0}
+.note{color:var(--gray-500);font-size:12.5px;margin-top:.6rem}
+.svgwrap{overflow-x:auto}
+.orglist{columns:2;column-gap:24px;font-size:12.5px;color:var(--gray-600)}
+.orglist>div{break-inside:avoid;margin-bottom:.5rem}
+.orglist b{color:var(--green-deep)}
+@media (max-width:900px){.orglist{columns:1}}
+@media (max-width:640px){
+  .grow{grid-template-columns:1fr 54px 100px}
+  .grow .bar{display:none}
+  header h1{font-size:21px}
+}
+
+/* ---------- แถบข้อมูลใหม่ + ปุ่มดึงข้อมูล ---------------------------------- */
+.freshbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  background:var(--green-50);border:1px solid var(--green-light);
+  border-radius:var(--radius-lg);padding:.8rem 1.2rem;margin-bottom:20px;font-size:13px}
+.freshbar .dot{width:9px;height:9px;border-radius:50%;background:var(--green);flex:none}
+.freshbar b{color:var(--green-deep)}
+.freshbar .push{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.b-new{background:var(--green);color:#fff}
+#runBox{display:none;margin-top:.7rem;width:100%;background:var(--bg-surface);
+  border:1px solid var(--gray-200);border-radius:var(--radius);padding:.9rem 1.1rem}
+#runBox code{display:block;background:var(--gray-900);color:#8CE3B0;padding:.6rem .8rem;
+  border-radius:var(--radius-sm);font-family:ui-monospace,Consolas,monospace;
+  font-size:12.5px;margin:.5rem 0;word-break:break-all}
+#runBox .st{font-weight:600}
+
+/* ---------- แทปรายการใหม่ --------------------------------------------------- */
+.batch{margin-bottom:24px}
+.batch .card-header .n{background:var(--green-light);color:var(--green-deep);
+  border-radius:var(--radius-pill);padding:0 .6em;font-size:12px;font-weight:600}
+.pickbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:.7rem 1.5rem;background:var(--green-50);
+  border-top:1px solid var(--green-light);border-bottom:1px solid var(--green-light);font-size:13px}
+.pickbar .push{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+td.pick,th.pick{width:34px;text-align:center}
+td.pick input{width:15px;height:15px;cursor:pointer;accent-color:var(--green)}
+tr.picked{background:#FFF7ED !important}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-pill" viewBox="0 0 24 24"><path d="M10.5 20.5a6.36 6.36 0 0 1-9-9l7-7a6.36 6.36 0 0 1 9 9z"/><path d="M8.5 8.5l7 7"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-5 4 3 5-7"/></symbol>
+<symbol id="i-table" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></symbol>
+<symbol id="i-store" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9h18v11H3z"/><path d="M9 20v-6h6v6"/></symbol>
+<symbol id="i-fire" viewBox="0 0 24 24"><path d="M12 2s4 4 4 8a4 4 0 0 1-8 0c0-1 .5-2 .5-2S6 11 6 14a6 6 0 0 0 12 0c0-5-6-12-6-12z"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v13M6 12l6 6 6-6M4 21h16"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+<symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+<symbol id="i-new" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></symbol>
+</defs></svg>
+
+<header>
+  <div class="wrap">
+    <h1><svg class="ic ic-lg"><use href="#i-pill"/></svg> ตลาดระบบยาในโรงพยาบาล — ประกาศจัดซื้อจัดจ้างภาครัฐ</h1>
+    <nav class="tabs" role="tablist">
+      <button role="tab" aria-selected="true"  data-tab="sum"><svg class="ic"><use href="#i-chart"/></svg> สรุป</button>
+      <button role="tab" aria-selected="false" data-tab="raw"><svg class="ic"><use href="#i-table"/></svg> ข้อมูลดิบ <span class="n" id="tabRawN">—</span></button>
+      <button role="tab" aria-selected="false" data-tab="new"><svg class="ic"><use href="#i-new"/></svg> รายการใหม่ <span class="n" id="tabNewN">0</span></button>
+      <button role="tab" aria-selected="false" data-tab="ven"><svg class="ic"><use href="#i-store"/></svg> ผู้ขาย <span class="n" id="tabVenN">—</span></button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============================ แทป: สรุป ============================ -->
+  <section id="tab-sum">
+    <div class="freshbar" id="freshbar"></div>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="callout co-amber" id="openBox"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <svg class="ic ic-lg" style="color:var(--green)"><use href="#i-chart"/></svg>
+        <h2 id="hGroups">แบ่งกลุ่มโครงการ</h2>
+        <span class="hint">คลิกกลุ่มไหนก็ได้ → เปิดแทปข้อมูลดิบพร้อมกรองกลุ่มนั้นให้เลย</span>
+      </div>
+      <div class="card-body">
+        <div class="g2" id="groups"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>หมวดสินค้า</h2>
+        <span class="hint" id="hintCats">โครงการหนึ่งอยู่ได้หลายหมวด</span>
+      </div>
+      <div class="card-body tight"><div class="grp" id="cats"></div></div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="card-header"><h2>รูปแบบการจัดหา × ปีงบ</h2></div>
+        <div class="tbl-scroll"><table id="formFy"></table></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2>รายภาค</h2><span class="hint">6 ภาคตามราชบัณฑิตยสภา</span></div>
+        <div class="tbl-scroll"><table id="regionTbl"></table></div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="card-header"><h2>15 จังหวัดมูลค่าสูงสุด</h2><span class="hint">คลิกเพื่อกรอง</span></div>
+        <div class="tbl-scroll"><table id="provTbl"></table></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2>แนวโน้มรายเดือนที่ประกาศ</h2></div>
+        <div class="card-body"><div class="svgwrap" id="trend"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <svg class="ic ic-lg" style="color:var(--gray-400)"><use href="#i-info"/></svg>
+        <h2>เกี่ยวเนื่องจากไฟล์ HIS/คิว</h2>
+        <span class="hint">ไม่นับรวมในยอดกลุ่มระบบยา</span>
+      </div>
+      <div class="card-body tight">
+        <p class="note" style="margin-bottom:.8rem">
+          สแกนไฟล์ <code class="mono">egp-2569-healthcare-procurement.md</code> (1,447 โครงการ HIS/คิว/Kiosk/IPD Paperless — ชุดที่ตรวจสอบยอดจากหน้าเว็บแล้ว)
+          ด้วยคำ <code class="mono">คลังยา · ห้องยา · จัดยา · เภสัช · บริหารยา · Pharmacy</code> แล้ว
+          <b>ไม่พบงานระบบยาเลย</b> — เจอเพียง 2 โครงการที่แตะห้องยา ซึ่งเนื้องานจริงเป็นระบบคิว/โปรแกรม ไม่ใช่เครื่องจัดยา
+        </p>
+        <div class="tbl-scroll"><table id="hisTbl"></table></div>
+      </div>
+    </div>
+
+    <details class="src">
+      <summary><svg class="ic"><use href="#i-info"/></svg> ที่มาของข้อมูลและข้อจำกัด — กดเพื่ออ่าน</summary>
+      <div class="card"><div class="card-body" id="srcBody"></div></div>
+    </details>
+  </section>
+
+  <!-- ============================ แทป: ข้อมูลดิบ ============================ -->
+  <section id="tab-raw" hidden>
+    <div class="card">
+      <div class="card-header"><h2>ตัวกรอง</h2>
+        <span class="hint">ทุกตัวกรองทำงานร่วมกันแบบ “และ” — ยกเว้นหมวดสินค้ากับคีย์เวิร์ดที่เป็น “อย่างใดอย่างหนึ่ง”</span>
+      </div>
+      <div class="card-body">
+        <div class="filters">
+          <div class="fld wide"><label for="fQ">ค้นหา (ชื่อโครงการ · หน่วยงาน · ผู้ชนะ · เลขโครงการ)</label>
+            <input id="fQ" type="search" placeholder="เช่น จี ดี โฟร์ · ชัยภูมิ · 69039282263" autocomplete="off"></div>
+          <div class="fld"><label for="fGroup">กลุ่มงาน</label><select id="fGroup"></select></div>
+          <div class="fld"><label for="fRegion">ภาค</label><select id="fRegion"></select></div>
+          <div class="fld"><label for="fProvince">จังหวัด</label><select id="fProvince"></select></div>
+          <div class="fld"><label for="fTier">Tier ลูกค้า</label><select id="fTier"></select></div>
+          <div class="fld"><label for="fPlay">กลุ่มโอกาสขาย</label><select id="fPlay"></select></div>
+          <div class="fld"><label for="fSeg">ประเภทหน่วยงาน</label><select id="fSeg"></select></div>
+          <div class="fld"><label for="fAcc">ลูกค้าซื้อซ้ำ</label><select id="fAcc"></select></div>
+          <div class="fld"><label for="fCare">จุดบริการ</label><select id="fCare"></select></div>
+          <div class="fld"><label for="fFy">ปีงบ</label><select id="fFy"></select></div>
+          <div class="fld"><label for="fStatus">สถานะ</label><select id="fStatus"></select></div>
+          <div class="fld"><label for="fMin">วงเงิน (บาท)</label>
+            <div class="rng"><input id="fMin" type="number" placeholder="ต่ำสุด" min="0">
+              <span style="color:var(--gray-400)">–</span>
+              <input id="fMax" type="number" placeholder="สูงสุด" min="0"></div></div>
+        </div>
+        <div style="margin-top:1.1rem">
+          <label style="font-size:11.5px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.04em">หมวดสินค้า</label>
+          <div class="chips" id="catChips"></div>
+        </div>
+        <div style="margin-top:1rem">
+          <label style="font-size:11.5px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.04em">คีย์เวิร์ดในชื่อโครงการ</label>
+          <div class="chips" id="kwChips"></div>
+        </div>
+      </div>
+      <div class="resbar">
+        <span>พบ <span class="big" id="rCount">0</span> โครงการ</span>
+        <span class="sep">·</span>
+        <span>รวม <span class="big" id="rSum">0</span> บาท</span>
+        <span class="push">
+          <button class="btn btn-ghost" id="btnClear"><svg class="ic"><use href="#i-x"/></svg> ล้างตัวกรอง</button>
+          <button class="btn btn-primary" id="btnCsv"><svg class="ic"><use href="#i-down"/></svg> ดาวน์โหลด CSV</button>
+        </span>
+      </div>
+      <div class="tbl-scroll"><table id="rawTbl"></table></div>
+      <div class="empty" id="rawEmpty" hidden>ไม่พบโครงการที่ตรงกับตัวกรอง — ลองกดล้างตัวกรอง</div>
+    </div>
+  </section>
+
+
+  <!-- ============================ แทป: รายการใหม่ ============================ -->
+  <section id="tab-new" hidden>
+    <div class="callout co-green" id="newIntro"></div>
+    <div id="newBatches"></div>
+  </section>
+
+  <!-- ============================ แทป: ผู้ขาย ============================ -->
+  <section id="tab-ven" hidden>
+    <div class="callout co-green" id="venTop"></div>
+    <div class="card">
+      <div class="card-header"><h2>ผู้ขายที่ชนะงาน</h2>
+        <span class="hint">คลิกชื่อผู้ขาย → เปิดแทปข้อมูลดิบพร้อมกรองงานของรายนั้น</span>
+      </div>
+      <div class="card-body" style="padding-bottom:1rem">
+        <div class="fld" style="max-width:380px"><label for="fVen">ค้นหาผู้ขาย</label>
+          <input id="fVen" type="search" placeholder="เช่น จี ดี โฟร์ · ธเนศ" autocomplete="off"></div>
+      </div>
+      <div class="tbl-scroll"><table id="venTbl"></table></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="foot-grid">
+      <div>
+        <h4>ขอบเขตรายงาน</h4>
+        <p class="sub">
+      เครื่อง/หุ่นยนต์จัดยา · ตู้จัดเก็บ-จ่ายยาอัตโนมัติ · เครื่องนับเม็ดยา · รถเข็นจ่ายยา ·
+      เครื่องผสมยา · โปรแกรมคลังยา · วัสดุสิ้นเปลืองที่ใช้กับเครื่อง —
+      ครอบคลุมทั้งจัดซื้อ เช่า MA/ซ่อมบำรุง และวัสดุ เฉพาะหน่วยงานสายสาธารณสุข ไม่จำกัดวงเงิน
+        </p>
+      </div>
+      <div>
+        <h4>ที่มาของข้อมูล</h4>
+        <div class="srcline">
+      <span>ที่มา: <b>ระบบ e-GP กรมบัญชีกลาง</b> <code>process5.gprocurement.go.th</code></span>
+      <span>ปีงบ <b>2568–2569</b></span>
+      <span>ไฟล์ต้นทาง: <code>egp-medication-management-2568-2569.md</code> (ดึง 8 ก.ย. · อัปเดต 18 ก.ย. 2569)
+        + <code>egp-2569-healthcare-procurement.md</code> (ดึง 7 ก.ย. · อัปเดต 18 ก.ย. 2569)</span>
+        </div>
+      </div>
+    </div>
+    <p class="foot-note">ธีมและเกณฑ์ Tier ใช้ชุดเดียวกับ CRM app (<code class="mono">css/sts-main.css</code>, <code class="mono">js/data/tier_config.js</code>) · โทนสีขาว-เขียวแบบ LINE for Business</p>
+  </footer>
+</main>
+
+<script>
+/* ===========================================================================
+   ข้อมูลฝังในไฟล์ — สร้างจาก scratchpad/extract.js อ่านไฟล์ .md ต้นทางโดยตรง
+   =========================================================================== */
+const DB = /*__DATA__*/null;
+const R = DB.records, VENDORS = DB.vendors, HIS = DB.hisRelated;
+
+/* ---------- helpers -------------------------------------------------------- */
+const $ = s => document.querySelector(s);
+const el = (t, a, h) => { const e = document.createElement(t);
+  if (a) for (const k in a) { if (k === 'class') e.className = a[k]; else e.setAttribute(k, a[k]); }
+  if (h != null) e.innerHTML = h; return e; };
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmt = n => (n || 0).toLocaleString('th-TH', { maximumFractionDigits: 2 });
+const fmtShort = n => {
+  n = n || 0;
+  if (n >= 1e6) return (n / 1e6).toLocaleString('th-TH', { maximumFractionDigits: 1 }) + ' ล.';
+  if (n >= 1e3) return Math.round(n / 1e3).toLocaleString('th-TH') + ' พ.';
+  return fmt(n);
+};
+const sum = (a, f) => a.reduce((s, x) => s + (f ? f(x) : x), 0);
+const uniq = a => Array.from(new Set(a));
+const TH_MON = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const thShow = iso => { if (!iso) return '—';
+  const p = iso.split('-'); return +p[2] + ' ' + TH_MON[+p[1]] + ' ' + p[0].slice(2); };
+
+const TOTAL = sum(R, r => r.budget);
+const TIER_META = {
+  T1: { name: 'T1 Strategic',   desc: '≥ 10 ล้าน',    cls: 't-T1', bar: 'b1' },
+  T2: { name: 'T2 Key Account', desc: '5–10 ล้าน',    cls: 't-T2', bar: 'b2' },
+  T3: { name: 'T3 Standard',    desc: '1–5 ล้าน',     cls: 't-T3', bar: 'b3' },
+  T4: { name: 'T4 Prospect',    desc: '< 1 ล้าน',     cls: 't-T4', bar: 'b4' },
+};
+const CARE_CLS = { OPD:'b-mint', IPD:'b-forest', 'OPD+IPD':'b-green', 'จุดบริการอื่น':'b-gray', 'ไม่ระบุ':'b-gray' };
+
+/* ---------- ตัวกรอง: state ------------------------------------------------- */
+const F = { q:'', openOnly:false, group:'', region:'', province:'', tier:'', play:'', seg:'', acc:'', care:'',
+            fy:'', status:'', min:null, max:null, cats:new Set(), kws:new Set() };
+
+function match(r) {
+  if (F.openOnly && !isOpenWork(r)) return false;
+  if (F.q) {
+    const q = F.q.toLowerCase();
+    const hay = (r.name + ' ' + r.org + ' ' + r.id + ' ' + r.winners.join(' ')).toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  if (F.group && r.group !== F.group) return false;
+  if (F.region && r.region !== F.region) return false;
+  if (F.province && r.province !== F.province) return false;
+  if (F.tier && r.tier !== F.tier) return false;
+  if (F.play && r.salesPlay !== F.play) return false;
+  if (F.seg && r.segment !== F.seg) return false;
+  if (F.acc && r.accountLevel !== F.acc) return false;
+  if (F.care && r.careSetting !== F.care) return false;
+  if (F.fy && r.fy !== +F.fy) return false;
+  if (F.status && r.status !== F.status) return false;
+  if (F.min != null && r.budget < F.min) return false;
+  if (F.max != null && r.budget > F.max) return false;
+  // หมวดสินค้า / คีย์เวิร์ด = OR ภายในมิติ, AND กับมิติอื่น
+  if (F.cats.size && !r.categories.some(c => F.cats.has(c))) return false;
+  if (F.kws.size && !r.keywords.some(k => F.kws.has(k))) return false;
+  return true;
+}
+
+/* ---------- แทป ------------------------------------------------------------ */
+function showTab(name) {
+  document.querySelectorAll('nav.tabs button').forEach(b =>
+    b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+  ['sum','raw','new','ven'].forEach(t => { $('#tab-' + t).hidden = (t !== name); });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('nav.tabs button').forEach(b =>
+  b.addEventListener('click', () => showTab(b.dataset.tab)));
+
+/* กระโดดไปแทปข้อมูลดิบพร้อมตั้งตัวกรองให้ */
+function jump(patch) {
+  clearFilters(true);
+  Object.assign(F, patch);
+  if (patch.cats) F.cats = new Set(patch.cats);
+  if (patch.kws)  F.kws  = new Set(patch.kws);
+  syncControls();
+  renderRaw();
+  showTab('raw');
+}
+
+/* ============================ แทป 1: สรุป ================================= */
+function renderKpis() {
+  const open = R.filter(r => r.isOpen).length;
+  const cancel = R.filter(r => r.statusFlag === 'cancel').length;
+  const med = R.filter(r => r.group === 'ระบบยา');
+  const ipd = R.filter(r => r.group === 'Smart IPD / eMAR');
+  const kpis = [
+    ['โครงการทั้งหมด', fmt(R.length), 'โครงการ', ''],
+    ['มูลค่างบประมาณรวม', fmtShort(TOTAL), 'บาท', ''],
+    ['— ระบบยา', fmt(med.length), 'โครงการ · ' + fmtShort(sum(med, r => r.budget)) + ' บ.', ''],
+    ['— Smart IPD / eMAR', fmt(ipd.length), 'โครงการ · ' + fmtShort(sum(ipd, r => r.budget)) + ' บ.', ''],
+    ['หน่วยงานที่พบ', fmt(uniq(R.map(r => r.org)).length), 'แห่ง', ''],
+    ['ยังยื่นได้', fmt(open), 'โครงการ', 'hot'],
+    ['ยกเลิกโครงการ', fmt(cancel), 'โครงการ', ''],
+  ];
+  $('#kpis').innerHTML = kpis.map(k =>
+    '<div class="kpi ' + k[3] + '"><div class="k">' + k[0] + '</div>' +
+    '<div class="v">' + k[1] + ' <span class="u">' + k[2] + '</span></div></div>').join('');
+}
+
+function renderOpen() {
+  const open = R.filter(r => r.isOpen).sort((a, b) => b.budget - a.budget);
+  let h = '<b><svg class="ic"><use href="#i-fire"/></svg> ' + open.length +
+    ' โครงการยังไม่ได้ผู้ชนะ — ยังเข้าไปเสนองานหรือยื่นวิจารณ์ร่าง TOR ได้</b>' +
+    '<div class="tbl-scroll" style="margin-top:.7rem"><table><thead><tr>' +
+    '<th>โครงการ</th><th>หน่วยงาน</th><th>จังหวัด</th><th class="num">วงเงิน</th>' +
+    '<th>ขั้นตอน</th><th>ประกาศ</th></tr></thead><tbody>';
+  h += open.map(r =>
+    '<tr><td><a href="' + esc(r.url) + '" target="_blank" rel="noopener">' + esc(r.name) + '</a></td>' +
+    '<td>' + esc(r.org) + '</td><td>' + esc(r.province) + '</td>' +
+    '<td class="num"><b>' + fmt(r.budget) + '</b></td>' +
+    '<td><span class="badge b-amber">' + esc(r.status) + '</span></td>' +
+    '<td class="num">' + thShow(r.announced) + '</td></tr>').join('');
+  $('#openBox').innerHTML = h + '</tbody></table></div>';
+}
+
+/* การ์ดแบ่งกลุ่ม 1 มิติ */
+function groupCard(title, hint, rows, barCls, onClick, footer) {
+  const max = Math.max.apply(null, rows.map(r => r.value));
+  const body = rows.map((r, i) =>
+    '<div class="grow" data-i="' + i + '" title="คลิกเพื่อกรองกลุ่มนี้">' +
+      '<div class="lab">' + (r.badge || '') + '<span>' + esc(r.label) + '</span></div>' +
+      '<div class="cnt">' + fmt(r.count) + '</div>' +
+      '<div class="amt">' + fmtShort(r.value) + ' บ.</div>' +
+      '<div class="bar ' + (r.bar || barCls) + '"><i style="width:' +
+        (max ? (r.value / max * 100).toFixed(1) : 0) + '%"></i></div>' +
+    '</div>').join('');
+  const card = el('div', { class: 'card' },
+    '<div class="card-header"><h2>' + title + '</h2>' +
+      (hint ? '<span class="hint">' + hint + '</span>' : '') + '</div>' +
+    '<div class="card-body tight"><div class="grp">' + body + '</div>' +
+      (footer ? '<p class="note">' + footer + '</p>' : '') + '</div>');
+  card.querySelectorAll('.grow').forEach(n =>
+    n.addEventListener('click', () => onClick(rows[+n.dataset.i])));
+  return card;
+}
+
+function tallyBy(field) {
+  const m = new Map();
+  R.forEach(r => {
+    const k = r[field];
+    if (!m.has(k)) m.set(k, { label: k, count: 0, value: 0 });
+    const o = m.get(k); o.count++; o.value += r.budget;
+  });
+  return Array.from(m.values()).sort((a, b) => b.value - a.value);
+}
+
+function renderGroups() {
+  const box = $('#groups');
+  box.innerHTML = '';
+
+  // 0. กลุ่มงาน — ที่มาคนละรอบการดึงข้อมูล ต้องให้เห็นก่อนอย่างอื่น
+  const groups = ['ระบบยา', 'Smart IPD / eMAR'].map(g => {
+    const rs = R.filter(r => r.group === g);
+    return { g, label: g, count: rs.length, value: sum(rs, r => r.budget) };
+  });
+  box.appendChild(groupCard('กลุ่มงาน', 'ดึงจาก e-GP คนละรอบ คนละชุดคีย์เวิร์ด', groups, 'bg',
+    g => jump({ group: g.g }),
+    '<b>ระบบยา</b> = เครื่องจัดยา/ตู้ยา/รถเข็น/วัสดุ ปีงบ 2568–2569 · ' +
+    '<b>Smart IPD / eMAR</b> = ระบบบันทึกข้อมูลผู้ป่วยใน (IPD Paperless/EMR) ปีงบ 2569 ' +
+    'จากไฟล์ egp-2569-healthcare-procurement.md — ไม่มีเลขโครงการซ้ำกันเลย'));
+
+  // 1. Tier — เรียง T1→T4 ไม่เรียงตามมูลค่า
+  const tiers = ['T1','T2','T3','T4'].map(id => {
+    const rs = R.filter(r => r.tier === id), m = TIER_META[id];
+    return { id, label: m.name + ' · ' + m.desc, count: rs.length, value: sum(rs, r => r.budget),
+             bar: m.bar, badge: '' };
+  });
+  const t1 = tiers[0];
+  box.appendChild(groupCard('Tier ลูกค้า', 'เกณฑ์จาก js/data/tier_config.js', tiers, 'b1',
+    g => jump({ tier: g.id }),
+    '<b>T1 มีแค่ ' + t1.count + ' โครงการ (' + (t1.count / R.length * 100).toFixed(1) +
+    '% ของจำนวน) แต่กินมูลค่าถึง ' + (t1.value / TOTAL * 100).toFixed(0) + '% ของตลาด</b> — ' +
+    'ทุ่มแรงที่กลุ่มนี้ได้ผลตอบแทนสูงสุด'));
+
+  // 2. Sales Play
+  box.appendChild(groupCard('กลุ่มโอกาสขาย', 'one-time vs รายได้ต่อเนื่อง', tallyBy('salesPlay'), 'bp',
+    g => jump({ play: g.label }),
+    'ดีลเช่า · MA · วัสดุสิ้นเปลือง = รายได้ที่กลับมาซ้ำทุกปี ตามต่อได้โดยไม่ต้องหาลูกค้าใหม่'));
+
+  // 3. Segment
+  box.appendChild(groupCard('ประเภทหน่วยงาน', 'อนุมานจากชื่อหน่วยงาน', tallyBy('segment'), 'bc',
+    g => jump({ seg: g.label }),
+    'ไม่ใช่ข้อมูลตรงจาก e-GP — จับจากคำในชื่อหน่วยงาน เช่น คณะแพทยศาสตร์ · มะเร็ง · ธัญญารักษ์ · ค่าย'));
+
+  // 4. Active Account — นับทั้งจำนวนแห่งและจำนวนโครงการ
+  const orgN = {};
+  R.forEach(r => { orgN[r.org] = (orgN[r.org] || 0) + 1; });
+  const accOrder = ['Active ซื้อ ≥5 ครั้ง', 'ซื้อซ้ำ 2–4 ครั้ง', 'ซื้อครั้งเดียว'];
+  const accRows = accOrder.map(k => {
+    const rs = R.filter(r => r.accountLevel === k);
+    const orgs = uniq(rs.map(r => r.org)).length;
+    return { label: k + ' (' + orgs + ' แห่ง)', count: rs.length, value: sum(rs, r => r.budget) };
+  });
+  const top = Object.keys(orgN).sort((a, b) => orgN[b] - orgN[a]).slice(0, 5)
+    .map(o => esc(o.replace('โรงพยาบาล', 'รพ.')) + ' ' + orgN[o]).join(' · ');
+  box.appendChild(groupCard('ลูกค้าซื้อซ้ำ', 'ตัวเลขคือจำนวนโครงการ', accRows, 'b3',
+    g => jump({ acc: accOrder[accRows.indexOf(g)] }),
+    'ซื้อบ่อยที่สุด: ' + top));
+
+  // 5. จุดบริการ OPD/IPD
+  const careOrder = ['IPD','OPD','OPD+IPD','จุดบริการอื่น','ไม่ระบุ'];
+  const careRows = careOrder.map(k => {
+    const rs = R.filter(r => r.careSetting === k);
+    return { label: k, count: rs.length, value: sum(rs, r => r.budget) };
+  }).filter(r => r.count);
+  const big = R.filter(r => r.budget >= 1e6);
+  const bigKnown = big.filter(r => r.careSetting !== 'ไม่ระบุ').length;
+  box.appendChild(groupCard('จุดบริการ', 'แยกจากชื่อโครงการ', careRows, 'bp',
+    g => jump({ care: g.label }),
+    'ชื่อโครงการระบุจุดบริการเพียง ' +
+    (R.filter(r => r.careSetting !== 'ไม่ระบุ').length / R.length * 100).toFixed(0) +
+    '% ของทั้งหมด แต่ในดีล ≥1 ล้าน ระบุถึง <b>' +
+    (bigKnown / big.length * 100).toFixed(0) + '%</b> — กลุ่ม “ไม่ระบุ” คือไม่มีข้อมูล ไม่ใช่ศูนย์'));
+
+  // 6. คีย์เวิร์ด
+  const kwMap = new Map();
+  R.forEach(r => r.keywords.forEach(k => {
+    if (!kwMap.has(k)) kwMap.set(k, { label: k, count: 0, value: 0 });
+    const o = kwMap.get(k); o.count++; o.value += r.budget;
+  }));
+  const kwRows = Array.from(kwMap.values()).sort((a, b) => b.count - a.count);
+  const noKw = R.filter(r => r.needsReview).length;
+  box.appendChild(groupCard('คีย์เวิร์ดในชื่อโครงการ', 'ชุดคำเดียวกับที่ใช้ดึงข้อมูล', kwRows, 'bc',
+    g => jump({ kws: [g.label] }),
+    'คีย์เวิร์ดซ้อนกันได้ ผลรวมจึงเกิน ' + R.length + ' · แมตช์อย่างน้อย 1 คำ ' +
+    (R.length - noKw) + '/' + R.length + ' โครงการ' +
+    (noKw ? ' · อีก ' + noKw + ' โครงการติดธง ⚠ ตรวจสอบ' : '')));
+  // นับการ์ดจริงแทนการเขียนตัวเลขตายไว้ในหัวข้อ — เพิ่ม/ลดการ์ดแล้วไม่ต้องตามแก้
+  $('#hGroups').textContent = 'แบ่งกลุ่มโครงการ ' + box.children.length + ' มิติ';
+}
+
+function renderCats() {
+  const m = new Map();
+  R.forEach(r => r.categories.forEach(c => {
+    if (!m.has(c)) m.set(c, { label: c, count: 0, value: 0, wins: {} });
+    const o = m.get(c); o.count++; o.value += r.budget;
+    r.winners.forEach(w => { o.wins[w] = (o.wins[w] || 0) + 1; });
+  }));
+  const rows = Array.from(m.values()).sort((a, b) => b.value - a.value);
+  const max = Math.max.apply(null, rows.map(r => r.value));
+  const catTotal = sum(rows, r => r.value);
+  // คำนวณจากข้อมูลจริง — ยอดโตขึ้นทุกรอบที่ egp-watch เติมแถวเข้ามา
+  $('#hintCats').textContent = 'โครงการหนึ่งอยู่ได้หลายหมวด ผลรวมจึงมากกว่า ' + fmt(R.length);
+  $('#cats').innerHTML = rows.map(r => {
+    const topWin = Object.keys(r.wins).sort((a, b) => r.wins[b] - r.wins[a])[0];
+    return '<div class="grow" data-c="' + esc(r.label) + '" title="คลิกเพื่อกรองหมวดนี้">' +
+      '<div class="lab"><span>' + esc(r.label) + '</span></div>' +
+      '<div class="cnt">' + r.count + '</div>' +
+      '<div class="amt">' + fmtShort(r.value) + ' บ.</div>' +
+      '<div class="bar"><i style="width:' + (r.value / max * 100).toFixed(1) + '%"></i></div>' +
+      '<div style="grid-column:1/-1;font-size:11.5px;color:var(--gray-400);margin-top:-4px">' +
+        'เฉลี่ย ' + fmtShort(r.value / r.count) + ' บาท/โครงการ' +
+        (topWin ? ' · ชนะมากสุด: ' + esc(topWin) : '') + '</div></div>';
+  }).join('') +
+  '<p class="note">ผลรวมรายหมวด <b>' + fmtShort(catTotal) + ' บาท</b> มากกว่ายอดรวมจริง <b>' +
+  fmtShort(TOTAL) + ' บาท</b> เพราะโครงการหนึ่งถูกนับได้หลายหมวด (เช่น ซื้อเครื่องพร้อมวัสดุ) — ไม่ใช่เลขผิด</p>';
+  $('#cats').querySelectorAll('.grow').forEach(n =>
+    n.addEventListener('click', () => jump({ cats: [n.dataset.c] })));
+}
+
+function renderFormFy() {
+  const forms = uniq(R.map(r => r.salesPlay));
+  const cell = (rs) => rs.length ? rs.length + '<div style="font-size:11px;color:var(--gray-400)">' +
+    fmtShort(sum(rs, r => r.budget)) + ' บ.</div>' : '—';
+  let h = '<thead><tr><th>กลุ่มโอกาสขาย</th><th class="num">2568</th><th class="num">2569</th>' +
+          '<th class="num">รวม</th></tr></thead><tbody>';
+  forms.map(f => ({ f, rs: R.filter(r => r.salesPlay === f) }))
+    .sort((a, b) => sum(b.rs, r => r.budget) - sum(a.rs, r => r.budget))
+    .forEach(o => {
+      h += '<tr><td>' + esc(o.f) + '</td>' +
+        '<td class="num">' + cell(o.rs.filter(r => r.fy === 2568)) + '</td>' +
+        '<td class="num">' + cell(o.rs.filter(r => r.fy === 2569)) + '</td>' +
+        '<td class="num"><b>' + o.rs.length + '</b><div style="font-size:11px;color:var(--gray-500)">' +
+        fmtShort(sum(o.rs, r => r.budget)) + ' บ.</div></td></tr>';
+    });
+  const y68 = R.filter(r => r.fy === 2568), y69 = R.filter(r => r.fy === 2569);
+  const s68 = sum(y68, r => r.budget), s69 = sum(y69, r => r.budget);
+  h += '<tr style="background:var(--gray-50);font-weight:700"><td>รวม</td>' +
+    '<td class="num">' + y68.length + '<div style="font-size:11px;font-weight:400">' + fmtShort(s68) + ' บ.</div></td>' +
+    '<td class="num">' + y69.length + '<div style="font-size:11px;font-weight:400">' + fmtShort(s69) + ' บ.</div></td>' +
+    '<td class="num">' + R.length + '<div style="font-size:11px;font-weight:400">' + fmtShort(TOTAL) + ' บ.</div></td></tr>';
+  h += '</tbody>';
+  $('#formFy').innerHTML = h;
+}
+
+function renderRegion() {
+  const cats = ['เครื่อง/ระบบจัดยาอัตโนมัติ (ATDPS)','ตู้จัดเก็บ/จ่ายยาอัตโนมัติ (ADC)',
+                'เครื่องนับเม็ดยา','รถเข็นจ่ายยา','วัสดุสิ้นเปลืองของระบบ'];
+  const short = ['ATDPS','ADC','นับเม็ดยา','รถเข็น','วัสดุ'];
+  const regions = uniq(R.map(r => r.region)).map(rg => {
+    const rs = R.filter(r => r.region === rg);
+    return { rg, n: rs.length, v: sum(rs, r => r.budget),
+             c: cats.map(c => rs.filter(r => r.categories.includes(c)).length) };
+  }).sort((a, b) => b.v - a.v);
+  const maxV = Math.max.apply(null, regions.map(r => r.v));
+  let h = '<thead><tr><th>ภาค</th><th class="num">โครงการ</th><th class="num">มูลค่า</th>' +
+    short.map(s => '<th class="num">' + s + '</th>').join('') + '</tr></thead><tbody>';
+  regions.forEach(o => {
+    h += '<tr style="cursor:pointer" data-rg="' + esc(o.rg) + '" title="คลิกเพื่อกรองภาคนี้">' +
+      '<td><b>' + esc(o.rg) + '</b></td><td class="num">' + o.n + '</td>' +
+      '<td class="num"><div>' + fmtShort(o.v) + ' บ.</div>' +
+      '<div class="bar" style="margin-top:3px"><i style="width:' + (o.v / maxV * 100).toFixed(1) + '%"></i></div></td>' +
+      o.c.map(n => '<td class="num" style="' +
+        (n ? 'background:rgba(6,199,85,' + Math.min(.028 * n, .3).toFixed(3) + ')' : 'color:var(--gray-300)') +
+        '">' + (n || '·') + '</td>').join('') + '</tr>';
+  });
+  $('#regionTbl').innerHTML = h + '</tbody>';
+  $('#regionTbl').querySelectorAll('tbody tr').forEach(tr =>
+    tr.addEventListener('click', () => jump({ region: tr.dataset.rg })));
+}
+
+function renderProv() {
+  const m = new Map();
+  R.forEach(r => {
+    if (!m.has(r.province)) m.set(r.province, { p: r.province, rg: r.region, n: 0, v: 0 });
+    const o = m.get(r.province); o.n++; o.v += r.budget;
+  });
+  const rows = Array.from(m.values()).sort((a, b) => b.v - a.v).slice(0, 15);
+  const max = rows[0].v;
+  let h = '<thead><tr><th>#</th><th>จังหวัด</th><th>ภาค</th><th class="num">โครงการ</th>' +
+          '<th class="num">มูลค่ารวม</th></tr></thead><tbody>';
+  rows.forEach((o, i) => {
+    h += '<tr style="cursor:pointer" data-p="' + esc(o.p) + '" title="คลิกเพื่อกรองจังหวัดนี้">' +
+      '<td class="mono">' + (i + 1) + '</td><td><b>' + esc(o.p) + '</b></td>' +
+      '<td style="color:var(--gray-500);font-size:12px">' + esc(o.rg) + '</td>' +
+      '<td class="num">' + o.n + '</td>' +
+      '<td class="num"><div><b>' + fmtShort(o.v) + '</b> บ.</div>' +
+      '<div class="bar" style="margin-top:3px"><i style="width:' + (o.v / max * 100).toFixed(1) + '%"></i></div></td></tr>';
+  });
+  $('#provTbl').innerHTML = h + '</tbody>';
+  $('#provTbl').querySelectorAll('tbody tr').forEach(tr =>
+    tr.addEventListener('click', () => jump({ province: tr.dataset.p })));
+}
+
+function renderTrend() {
+  const m = new Map();
+  R.forEach(r => {
+    if (!r.announced) return;
+    const k = r.announced.slice(0, 7);
+    if (!m.has(k)) m.set(k, { k, n: 0, v: 0 });
+    const o = m.get(k); o.n++; o.v += r.budget;
+  });
+  const rows = Array.from(m.values()).sort((a, b) => a.k < b.k ? -1 : 1);
+  const W = Math.max(rows.length * 42 + 60, 420), H = 210, PAD = 34, BW = 26;
+  const max = Math.max.apply(null, rows.map(r => r.v));
+  let s = '<svg width="' + W + '" height="' + H + '" role="img" aria-label="มูลค่าตามเดือนที่ประกาศ">';
+  [0, .5, 1].forEach(f => {
+    const y = PAD + (H - PAD - 40) * (1 - f);
+    s += '<line x1="34" y1="' + y + '" x2="' + (W - 8) + '" y2="' + y +
+      '" stroke="#EAECF0" stroke-width="1"/>' +
+      '<text x="30" y="' + (y + 4) + '" text-anchor="end" font-size="9.5" fill="#98A2B3">' +
+      fmtShort(max * f) + '</text>';
+  });
+  rows.forEach((r, i) => {
+    const h = max ? (H - PAD - 40) * (r.v / max) : 0;
+    const x = 40 + i * 42, y = H - 40 - h;
+    s += '<rect x="' + x + '" y="' + y + '" width="' + BW + '" height="' + Math.max(h, 1) +
+      '" rx="3" fill="#06C755" opacity="' + (r.k >= '2569' ? '1' : '.55') + '">' +
+      '<title>' + TH_MON[+r.k.slice(5)] + ' ' + r.k.slice(2, 4) + ' — ' + r.n +
+      ' โครงการ · ' + fmt(r.v) + ' บาท</title></rect>' +
+      '<text x="' + (x + BW / 2) + '" y="' + (H - 26) + '" text-anchor="middle" font-size="9" fill="#667085">' +
+      TH_MON[+r.k.slice(5)].replace('.', '') + '</text>' +
+      '<text x="' + (x + BW / 2) + '" y="' + (H - 14) + '" text-anchor="middle" font-size="8.5" fill="#98A2B3">' +
+      r.k.slice(2, 4) + '</text>';
+  });
+  $('#trend').innerHTML = s + '</svg>' +
+    '<p class="note">แท่งเข้ม = ปีงบ 2569 · แท่งจาง = 2568 · ชี้ที่แท่งเพื่อดูตัวเลข</p>';
+}
+
+function renderHis() {
+  $('#hisTbl').innerHTML = '<thead><tr><th>เลขโครงการ</th><th>โครงการ</th><th>หน่วยงาน</th>' +
+    '<th>จังหวัด</th><th class="num">วงเงิน</th><th>ที่มา</th></tr></thead><tbody>' +
+    HIS.map(r => '<tr><td class="mono">' + esc(r.id) + '</td>' +
+      '<td><a href="' + esc(r.url) + '" target="_blank" rel="noopener">' + esc(r.name) + '</a></td>' +
+      '<td>' + esc(r.org) + '</td><td>' + esc(r.province) + '</td>' +
+      '<td class="num"><b>' + fmt(r.budget) + '</b></td>' +
+      '<td><span class="badge b-gray">HIS/คิว บรรทัด ' + r.line + '</span></td></tr>').join('') +
+    '</tbody>';
+}
+
+function renderSrc() {
+  $('#srcBody').innerHTML =
+  '<h3 style="font-size:14px;margin-bottom:.5rem">ที่มาของแต่ละคอลัมน์</h3>' +
+  '<div class="tbl-scroll"><table><thead><tr><th>คอลัมน์</th><th>ที่มา</th></tr></thead><tbody>' +
+  [['เลขโครงการ · ชื่อโครงการ · หน่วยงาน · วงเงิน · สถานะ · วันประกาศ',
+    '<span class="badge b-green">ข้อมูลตรงจากระบบ</span> e-GP <code class="mono">announcement</code>'],
+   ['ผู้ชนะ · ราคาที่ตกลง · วันประกาศผล',
+    '<span class="badge b-green">ข้อมูลตรงจากระบบ</span> e-GP <code class="mono">getProcureResult</code> — ผู้ชนะคือรายที่มีค่า <code class="mono">priceAgree</code>'],
+   ['วิธีจัดหา', '<span class="badge b-green">ข้อมูลตรงจากระบบ</span> <code class="mono">methodId</code> จับคู่กับ <code class="mono">listProcureMethod</code>'],
+   ['จังหวัด · ภาค', '<span class="badge b-green">ข้อมูลตรงจากระบบ</span> <code class="mono">infoDeptSub</code> + ทะเบียนจังหวัดของ e-GP'],
+   ['ประเภทการจัดหา (ซื้อ/จ้าง/เช่า)', '<span class="badge b-amber">อนุมาน</span> จากคำขึ้นต้นชื่อโครงการ'],
+   ['รูปแบบ (จัดซื้อ/เช่า/MA/วัสดุ)', '<span class="badge b-amber">อนุมาน</span> จากคำในชื่อโครงการ'],
+   ['Tier ลูกค้า T1–T4', '<span class="badge b-mint">คำนวณในรายงานนี้</span> จากวงเงิน ตามเกณฑ์ <code class="mono">criteria.minRevenue</code> ใน <code class="mono">js/data/tier_config.js</code>'],
+   ['กลุ่มโอกาสขาย', '<span class="badge b-mint">คำนวณในรายงานนี้</span> แปลงตรงจากคอลัมน์รูปแบบ'],
+   ['ประเภทหน่วยงาน (Segment)', '<span class="badge b-amber">อนุมาน</span> จับคำในชื่อหน่วยงาน — ไม่ใช่ทะเบียนจริงของ สธ.'],
+   ['ลูกค้าซื้อซ้ำ', '<span class="badge b-mint">คำนวณในรายงานนี้</span> นับจำนวนโครงการต่อหน่วยงานในชุดข้อมูลนี้'],
+   ['จุดบริการ OPD/IPD', '<span class="badge b-amber">อนุมาน</span> จับคำในชื่อโครงการ'],
+   ['คีย์เวิร์ด', '<span class="badge b-mint">คำนวณในรายงานนี้</span> จับคำในชื่อโครงการด้วยชุดคำเดียวกับที่ใช้ดึงข้อมูล'],
+  ].map(r => '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>').join('') +
+  '</tbody></table></div>' +
+
+  '<h3 style="font-size:14px;margin:1.4rem 0 .5rem">คีย์เวิร์ดที่ใช้ค้นใน e-GP</h3>' +
+  '<p style="font-size:13px">รอบเก็บจากหน้าเว็บ (8 ก.ย. 2569): ดึงประกาศมา <b>2,549 รายการ</b> (303 หน้า) แล้วคัดกรองเหลือ <b>444 โครงการ</b> ด้วยคำเหล่านี้:</p>' +
+  '<p class="mono" style="font-size:12px;color:var(--gray-600);line-height:2">' +
+  ['เครื่องจัดยา','จัดยาอัตโนมัติ','จ่ายยาอัตโนมัติ','หุ่นยนต์จัดยา','นับเม็ดยา','ตู้เก็บยา','ตู้ยา',
+   'ตู้จ่ายยา','รถเข็นจ่ายยา','รถจ่ายยา','เครื่องบรรจุยา','ซองบรรจุยา','ซองยา','เครื่องจ่ายยา',
+   'เครื่องผสมยา','ระบบจ่ายยา','บริหารจัดการยา','แบ่งบรรจุยา','คลังยา']
+    .map(k => '<span class="badge b-gray" style="margin-right:4px">' + k + '</span>').join('') + '</p>' +
+  '<p class="note">คำที่ทดสอบแล้วไม่ใช้: <code class="mono">unit dose</code> (1,373 รายการ — เป็นตัวยาในบรรจุภัณฑ์ unit dose ไม่ใช่เครื่อง) · ' +
+  '<code class="mono">ATDPS · Pyxis · Omnicell · JVM · ตู้จัดเก็บยา · เก็บยาอัตโนมัติ · เครื่องจัดเรียงยา</code> (ไม่พบรายการใน e-GP)</p>' +
+
+  '<h3 style="font-size:14px;margin:1.4rem 0 .5rem">เกณฑ์คัดเข้า / คัดออก</h3>' +
+  '<div class="tbl-scroll"><table><tbody>' +
+  [['คัดเข้า','เครื่อง/ระบบจัดยา-จ่ายยา (กึ่ง)อัตโนมัติ · ตู้ยาที่มีคำว่าอัตโนมัติ/ควบคุม/ER/ward/ห้องผ่าตัด · เครื่องนับเม็ดยา · รถเข็นจ่ายยา · เครื่องผสม-เตรียมยา · โปรแกรมบริหารคลังยา'],
+   ['วัสดุสิ้นเปลือง','นับเฉพาะที่<b>อ้างถึงเครื่อง</b>ในชื่อโครงการ (ซองยา/หมึกพิมพ์/ผ้าหมึก/บรรจุภัณฑ์ + เครื่องจัดยา/ชื่อยี่ห้อ) — ไม่นับซองยาพลาสติกหรือสติกเกอร์ห้องยาทั่วไป'],
+   ['คัดออก','งานปรับปรุง/ก่อสร้าง/ซ่อมห้องยา-คลังยา · เครื่องปรับอากาศ/กล้องวงจรปิด/ป้าย · จ้างเหมาพนักงานคลังยา · ตัวยาและเวชภัณฑ์ · ตู้ยาสามัญประจำบ้าน/โรงเรียน/ศูนย์เด็กเล็ก']]
+    .map(r => '<tr><td style="white-space:nowrap"><b>' + r[0] + '</b></td><td>' + r[1] + '</td></tr>').join('') +
+  '</tbody></table></div>' +
+
+  '<h3 style="font-size:14px;margin:1.4rem 0 .5rem">ข้อจำกัด</h3>' +
+  '<ul style="margin:0;padding-left:1.2rem;font-size:13px;color:var(--gray-600)">' +
+  ['e-GP ค้นแบบ substring บนชื่อโครงการ — โครงการที่ตั้งชื่อไม่ตรงคีย์เวิร์ดอาจตกหล่น',
+   '<b>“จังหวัด” คือที่ตั้งของหน่วยจัดซื้อ ไม่ใช่สถานที่ส่งมอบ</b>',
+   '24 โครงการที่ระบบยังไม่มีรายละเอียดผลการเสนอราคา แสดงผู้ชนะเป็นค่าว่าง',
+   'บางโครงการมีเลขขึ้นต้น 67 (ปี 2567) เพราะ e-GP จัดให้อยู่ในปีงบที่ค้น — เป็นโครงการที่ประกาศข้ามปีงบ',
+   'ภาค = การแบ่ง 6 ภาคตามราชบัณฑิตยสภา',
+   'ชื่อโครงการในไฟล์ต้นทางถูกตัดที่ราว 150 ตัวอักษร — คีย์เวิร์ดส่วนใหญ่อยู่ต้นชื่อจึงไม่กระทบ แต่การค้นข้อความอาจพลาดคำที่อยู่ท้ายชื่อ',
+   'จุดบริการ OPD/IPD แยกได้จากชื่อโครงการเท่านั้น ครอบคลุมราว 25% ของทั้งหมด',
+   'ประเภทหน่วยงานและกลุ่มโอกาสขายเป็นการอนุมาน ไม่ใช่ทะเบียนทางการ',
+   '<b>2 โครงการติดธง ⚠ ตรวจสอบ</b> — ไม่แมตช์คีย์เวิร์ดใดเลย เนื้องานเป็นวัสดุเวชภัณฑ์มิใช่ยา (ไหมเย็บ/catgut) น่าจะหลุดเข้ามาผิดตั้งแต่ไฟล์ต้นทาง'
+  ].map(s => '<li>' + s + '</li>').join('') + '</ul>';
+}
+
+/* ============================ แทป 2: ข้อมูลดิบ ============================ */
+let sortKey = 'budget', sortDir = 'desc';
+
+function fillSelect(id, opts, allLabel) {
+  const s = $(id);
+  s.innerHTML = '<option value="">' + allLabel + '</option>' +
+    opts.map(o => '<option value="' + esc(o.v) + '">' + esc(o.t) + '</option>').join('');
+}
+
+function initControls() {
+  const cnt = (f, v) => R.filter(r => r[f] === v).length;
+  const opts = (f) => uniq(R.map(r => r[f])).sort()
+    .map(v => ({ v, t: v + ' (' + cnt(f, v) + ')' }));
+
+  fillSelect('#fGroup', ['ระบบยา', 'Smart IPD / eMAR']
+    .map(v => ({ v, t: v + ' (' + fmt(cnt('group', v)) + ')' })), 'ทั้งสองกลุ่ม');
+  fillSelect('#fRegion', uniq(R.map(r => r.region)).sort()
+    .map(v => ({ v, t: v + ' (' + cnt('region', v) + ')' })), 'ทุกภาค');
+  fillSelect('#fTier', ['T1','T2','T3','T4']
+    .map(v => ({ v, t: TIER_META[v].name + ' (' + cnt('tier', v) + ')' })), 'ทุก Tier');
+  fillSelect('#fPlay', opts('salesPlay'), 'ทุกกลุ่ม');
+  fillSelect('#fSeg', opts('segment'), 'ทุกประเภท');
+  fillSelect('#fAcc', ['Active ซื้อ ≥5 ครั้ง','ซื้อซ้ำ 2–4 ครั้ง','ซื้อครั้งเดียว']
+    .map(v => ({ v, t: v + ' (' + cnt('accountLevel', v) + ')' })), 'ทุกระดับ');
+  fillSelect('#fCare', ['IPD','OPD','OPD+IPD','จุดบริการอื่น','ไม่ระบุ'].filter(v => cnt('careSetting', v))
+    .map(v => ({ v, t: v + ' (' + cnt('careSetting', v) + ')' })), 'ทุกจุดบริการ');
+  fillSelect('#fFy', [2568, 2569].map(v => ({ v, t: v + ' (' + cnt('fy', v) + ')' })), 'ทุกปีงบ');
+  fillSelect('#fStatus', opts('status'), 'ทุกสถานะ');
+  syncProvinces();
+
+  // chips หมวดสินค้า
+  const catCount = new Map();
+  R.forEach(r => r.categories.forEach(c => catCount.set(c, (catCount.get(c) || 0) + 1)));
+  $('#catChips').innerHTML = Array.from(catCount.entries()).sort((a, b) => b[1] - a[1])
+    .map(e => '<button class="chip" aria-pressed="false" data-c="' + esc(e[0]) + '">' +
+      esc(e[0]) + ' <span class="n">' + e[1] + '</span></button>').join('');
+  $('#catChips').querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
+    const c = b.dataset.c;
+    if (F.cats.has(c)) F.cats.delete(c); else F.cats.add(c);
+    b.setAttribute('aria-pressed', String(F.cats.has(c)));
+    renderRaw();
+  }));
+
+  // chips คีย์เวิร์ด
+  const kwCount = new Map();
+  R.forEach(r => r.keywords.forEach(k => kwCount.set(k, (kwCount.get(k) || 0) + 1)));
+  $('#kwChips').innerHTML = Array.from(kwCount.entries()).sort((a, b) => b[1] - a[1])
+    .map(e => '<button class="chip" aria-pressed="false" data-k="' + esc(e[0]) + '">' +
+      esc(e[0]) + ' <span class="n">' + e[1] + '</span></button>').join('');
+  $('#kwChips').querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.k;
+    if (F.kws.has(k)) F.kws.delete(k); else F.kws.add(k);
+    b.setAttribute('aria-pressed', String(F.kws.has(k)));
+    renderRaw();
+  }));
+
+  // bindings
+  let t = null;
+  $('#fQ').addEventListener('input', e => {
+    clearTimeout(t); t = setTimeout(() => { F.q = e.target.value.trim(); renderRaw(); }, 150);
+  });
+  const bind = (id, key, after) => $(id).addEventListener('change', e => {
+    F[key] = e.target.value; if (after) after(); renderRaw();
+  });
+  bind('#fGroup', 'group');
+  bind('#fRegion', 'region', () => { F.province = ''; syncProvinces(); });
+  bind('#fProvince', 'province');
+  bind('#fTier', 'tier'); bind('#fPlay', 'play'); bind('#fSeg', 'seg');
+  bind('#fAcc', 'acc');   bind('#fCare', 'care'); bind('#fFy', 'fy');
+  bind('#fStatus', 'status');
+  $('#fMin').addEventListener('input', e => { F.min = e.target.value === '' ? null : +e.target.value; renderRaw(); });
+  $('#fMax').addEventListener('input', e => { F.max = e.target.value === '' ? null : +e.target.value; renderRaw(); });
+  $('#btnClear').addEventListener('click', () => { clearFilters(); renderRaw(); });
+  $('#btnCsv').addEventListener('click', exportCsv);
+}
+
+/* จังหวัดขึ้นกับภาคที่เลือก */
+function syncProvinces() {
+  const pool = F.region ? R.filter(r => r.region === F.region) : R;
+  const m = new Map();
+  pool.forEach(r => m.set(r.province, (m.get(r.province) || 0) + 1));
+  fillSelect('#fProvince', Array.from(m.keys()).sort((a, b) => a.localeCompare(b, 'th'))
+    .map(v => ({ v, t: v + ' (' + m.get(v) + ')' })),
+    'ทุกจังหวัด' + (F.region ? ' ใน' + F.region : ''));
+  $('#fProvince').value = F.province;
+}
+
+function clearFilters(silent) {
+  F.openOnly = false;
+  F.q = ''; F.group = ''; F.region = ''; F.province = ''; F.tier = ''; F.play = ''; F.seg = '';
+  F.acc = ''; F.care = ''; F.fy = ''; F.status = ''; F.min = null; F.max = null;
+  F.cats.clear(); F.kws.clear();
+  if (!silent) syncControls();
+}
+
+function syncControls() {
+  $('#fQ').value = F.q;
+  $('#fGroup').value = F.group;
+  $('#fRegion').value = F.region;
+  syncProvinces();
+  $('#fTier').value = F.tier; $('#fPlay').value = F.play; $('#fSeg').value = F.seg;
+  $('#fAcc').value = F.acc;   $('#fCare').value = F.care; $('#fFy').value = F.fy;
+  $('#fStatus').value = F.status;
+  $('#fMin').value = F.min == null ? '' : F.min;
+  $('#fMax').value = F.max == null ? '' : F.max;
+  $('#catChips').querySelectorAll('.chip').forEach(b =>
+    b.setAttribute('aria-pressed', String(F.cats.has(b.dataset.c))));
+  $('#kwChips').querySelectorAll('.chip').forEach(b =>
+    b.setAttribute('aria-pressed', String(F.kws.has(b.dataset.k))));
+}
+
+const COLS = [
+  { k: 'addedAt',  t: 'เพิ่มเมื่อ', s: true, num: true },
+  { k: 'id',        t: 'เลขโครงการ', s: true },
+  { k: 'name',      t: 'โครงการ',    s: true },
+  { k: 'org',       t: 'หน่วยงาน',   s: true },
+  { k: 'province',  t: 'จังหวัด',    s: true },
+  { k: 'budget',    t: 'วงเงิน',     s: true, num: true },
+  { k: 'salesPlay', t: 'กลุ่มขาย',   s: true },
+  { k: 'fy',        t: 'ปีงบ',       s: true, num: true },
+  { k: 'announced', t: 'ประกาศ',     s: true, num: true },
+  { k: 'status',    t: 'สถานะ',      s: true },
+  { k: 'winner',    t: 'ผู้ชนะ / ราคาที่ตกลง', s: false },
+];
+
+function sortRows(rows) {
+  const dir = sortDir === 'asc' ? 1 : -1;
+  return rows.slice().sort((a, b) => {
+    let x = a[sortKey], y = b[sortKey];
+    if (sortKey === 'budget' || sortKey === 'fy') return ((x || 0) - (y || 0)) * dir;
+    if (sortKey === 'announced' || sortKey === 'addedAt') return String(x || '').localeCompare(String(y || '')) * dir;
+    return String(x || '').localeCompare(String(y || ''), 'th') * dir;
+  });
+}
+
+function renderRaw() {
+  const rows = sortRows(R.filter(match));
+  $('#rCount').textContent = fmt(rows.length);
+  $('#rSum').textContent = fmt(sum(rows, r => r.budget));
+  $('#tabRawN').textContent = fmt(rows.length);
+  $('#rawEmpty').hidden = rows.length > 0;
+
+  const head = '<thead><tr>' + COLS.map(c =>
+    '<th' + (c.num ? ' class="num sortable"' : c.s ? ' class="sortable"' : '') +
+    (c.s ? ' data-k="' + c.k + '"' + (sortKey === c.k ? ' data-dir="' + sortDir + '"' : '') : '') +
+    '>' + c.t + '</th>').join('') + '</tr></thead>';
+
+  const body = '<tbody>' + rows.map(r => {
+    const badges = '<div class="rowbadges">' +
+      '<span class="badge ' + TIER_META[r.tier].cls + '">' + r.tier + '</span>' +
+      (isOpenWork(r) ? '<span class="badge b-amber">ยังยื่นได้</span>' : '') +
+      (r.addedAt ? '<span class="badge b-new">ใหม่ ' + r.addedAt.slice(5,10).replace('-','/') + '</span>' : '') +
+      (r.group === 'Smart IPD / eMAR' ? '<span class="badge b-forest">Smart IPD / eMAR</span>' : '') +
+      (r.careSetting !== 'ไม่ระบุ' ? '<span class="badge ' + CARE_CLS[r.careSetting] + '">' +
+        esc(r.careSetting) + '</span>' : '') +
+      r.categories.map(c => '<span class="badge b-gray">' + esc(c) + '</span>').join('') +
+      (r.needsReview ? '<span class="badge b-red"><svg class="ic"><use href="#i-warn"/></svg> ตรวจสอบ</span>' : '') +
+      '</div>' +
+      (r.keywords.length ? '<div class="kw">คีย์เวิร์ด: ' + r.keywords.map(esc).join(' · ') + '</div>' : '');
+    const stCls = r.statusFlag === 'open' ? 'b-amber' : r.statusFlag === 'cancel' ? 'b-red' : 'b-green';
+    const price = r.priceAgree != null ? '<div class="num" style="font-weight:700;color:var(--gray-900)">' +
+        fmt(r.priceAgree) + '</div>'
+      : r.priceOffered != null ? '<div class="num" style="color:var(--gray-400)">เสนอ ' + fmt(r.priceOffered) + '</div>'
+      : '';
+    return '<tr>' +
+      '<td class="num mono">' + (r.addedAt ? r.addedAt.slice(5,10).replace('-','/') : '—') + '</td>' +
+      '<td class="mono">' + esc(r.id) + '</td>' +
+      '<td>' + (r.url ? '<a class="pname" href="' + esc(r.url) + '" target="_blank" rel="noopener">' +
+          esc(r.name) + '</a>' : '<span class="pname">' + esc(r.name) + '</span>') + badges + '</td>' +
+      '<td>' + esc(r.org) +
+        '<div style="font-size:11.5px;color:var(--gray-400)">' + esc(r.segment) +
+        ' · ซื้อ ' + r.orgDeals + ' ครั้ง</div></td>' +
+      '<td>' + esc(r.province) +
+        '<div style="font-size:11.5px;color:var(--gray-400)">' + esc(r.region) + '</div></td>' +
+      '<td class="num"><b>' + fmt(r.budget) + '</b></td>' +
+      '<td>' + esc(r.salesPlay) +
+        '<div style="font-size:11.5px;color:var(--gray-400)">' + esc(r.method) + '</div></td>' +
+      '<td class="num">' + r.fy + '</td>' +
+      '<td class="num">' + thShow(r.announced) + '</td>' +
+      '<td><span class="badge ' + stCls + '">' + esc(r.status || '—') + '</span></td>' +
+      '<td>' + (r.winners.length ? esc(r.winners.join(' / ')) :
+          '<span style="color:var(--gray-400)">ยังไม่ลงผล</span>') + price + '</td>' +
+      '</tr>';
+  }).join('') + '</tbody>';
+
+  $('#rawTbl').innerHTML = head + body;
+  $('#rawTbl').querySelectorAll('th.sortable').forEach(th =>
+    th.addEventListener('click', () => {
+      const k = th.dataset.k;
+      if (sortKey === k) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      else { sortKey = k; sortDir = (k === 'budget' || k === 'announced' || k === 'fy') ? 'desc' : 'asc'; }
+      renderRaw();
+    }));
+}
+
+function exportCsv() {
+  const rows = sortRows(R.filter(match));
+  const head = ['กลุ่มงาน','เลขโครงการ','ปีงบ','ชื่อโครงการ','หน่วยงาน','จังหวัด','ภาค','วงเงิน',
+    'Tier','กลุ่มโอกาสขาย','ประเภทหน่วยงาน','ลูกค้าซื้อซ้ำ','จุดบริการ','คีย์เวิร์ด',
+    'หมวดสินค้า','วิธีจัดหา','วันประกาศ','สถานะ','ผู้ชนะ','ราคาที่ตกลง','ต้องตรวจสอบ','ลิงก์ e-GP'];
+  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const lines = [head.map(q).join(',')].concat(rows.map(r => [
+    r.group, r.id, r.fy, r.name, r.org, r.province, r.region, r.budget,
+    TIER_META[r.tier].name, r.salesPlay, r.segment, r.accountLevel, r.careSetting,
+    r.keywords.join(' | '), r.categories.join(' | '), r.method, r.announced, r.status,
+    r.winners.join(' | '), r.priceAgree == null ? '' : r.priceAgree,
+    r.needsReview ? 'ใช่' : '', r.url,
+  ].map(q).join(',')));
+  // BOM ﻿ จำเป็น ไม่งั้น Excel ภาษาไทยเปิดแล้วเป็นภาษาต่างดาว
+  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ระบบยา-egp-' + rows.length + 'โครงการ.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+/* ============================ แทป 3: ผู้ขาย =============================== */
+let venSort = 'value', venDir = 'desc', venQ = '';
+
+function renderVen() {
+  const top = VENDORS.slice().sort((a, b) => b.value - a.value).slice(0, 5);
+  $('#venTop').innerHTML = '<b>5 อันดับแรกกินส่วนแบ่ง ' +
+    (sum(top, v => v.value) / sum(VENDORS, v => v.value) * 100).toFixed(0) + '% ของมูลค่าที่ชนะทั้งหมด</b><br>' +
+    top.map(v => esc(v.name.replace(/^บริษัท /, '')) + ' — ' + fmtShort(v.value) +
+      ' บาท / ' + v.wins + ' งาน').join(' · ');
+
+  const rows = VENDORS.filter(v => !venQ || v.name.toLowerCase().includes(venQ.toLowerCase()))
+    .slice().sort((a, b) => {
+      const d = venDir === 'asc' ? 1 : -1;
+      if (venSort === 'name') return a.name.localeCompare(b.name, 'th') * d;
+      return ((a[venSort] || 0) - (b[venSort] || 0)) * d;
+    });
+  $('#tabVenN').textContent = fmt(rows.length);
+
+  const cols = [['name','ผู้ขาย'],['taxId','เลขผู้เสียภาษี'],['wins','งานที่ชนะ',1],
+                ['value','มูลค่ารวม',1],['provinces','จังหวัด',1],[null,'หมวดสินค้า']];
+  $('#venTbl').innerHTML = '<thead><tr>' + cols.map(c =>
+    '<th' + (c[2] ? ' class="num' + (c[0] ? ' sortable' : '') + '"' : c[0] ? ' class="sortable"' : '') +
+    (c[0] ? ' data-k="' + c[0] + '"' + (venSort === c[0] ? ' data-dir="' + venDir + '"' : '') : '') +
+    '>' + c[1] + '</th>').join('') + '</tr></thead><tbody>' +
+    rows.map(v => '<tr><td><a href="#" data-v="' + esc(v.name) + '"><b>' + esc(v.name) + '</b></a></td>' +
+      '<td class="mono">' + esc(v.taxId) + '</td>' +
+      '<td class="num">' + v.wins + '</td>' +
+      '<td class="num"><b>' + fmt(v.value) + '</b></td>' +
+      '<td class="num">' + v.provinces + '</td>' +
+      '<td>' + v.categories.map(c => '<span class="badge b-gray" style="margin:1px">' +
+        esc(c) + '</span>').join('') + '</td></tr>').join('') + '</tbody>';
+
+  $('#venTbl').querySelectorAll('th.sortable').forEach(th =>
+    th.addEventListener('click', () => {
+      const k = th.dataset.k;
+      if (venSort === k) venDir = venDir === 'asc' ? 'desc' : 'asc';
+      else { venSort = k; venDir = k === 'name' ? 'asc' : 'desc'; }
+      renderVen();
+    }));
+  $('#venTbl').querySelectorAll('a[data-v]').forEach(a =>
+    a.addEventListener('click', e => { e.preventDefault(); jump({ q: a.dataset.v }); }));
+}
+
+
+/* ============================ แถบข้อมูลใหม่ + ปุ่มดึงข้อมูล ================ */
+const RUNNER = 'http://127.0.0.1:8899';          // egp-watch/serve.js
+const OPEN_STATUS = ['ประกาศเชิญชวน', 'จัดทำ/วิจารณ์ร่าง TOR'];
+const isOpenWork = r => r.isOpen || OPEN_STATUS.includes(r.status);
+
+function renderFresh() {
+  const withDate = R.filter(r => r.addedAt);
+  const latest = withDate.length
+    ? withDate.map(r => r.addedAt).sort().pop() : null;
+  const newest = latest ? withDate.filter(r => r.addedAt === latest) : [];
+  const open = R.filter(isOpenWork);
+  const openNew = newest.filter(isOpenWork);
+
+  const thDT = s => {
+    if (!s) return '—';
+    const [d, t] = s.split('T');
+    const [y, m, dd] = d.split('-');
+    return +dd + ' ' + TH_MON[+m] + ' ' + String(+y + 543).slice(2) + ' เวลา ' + t + ' น.';
+  };
+
+  $('#freshbar').innerHTML =
+    '<span class="dot"></span>' +
+    '<span>ข้อมูลใหม่ล่าสุด: <b>' + (latest ? thDT(latest) : 'ยังไม่เคยดึงเพิ่ม') + '</b>' +
+      (newest.length ? ' · เพิ่ม <b>' + fmt(newest.length) + '</b> โครงการ' : '') + '</span>' +
+    '<span class="sep" style="color:var(--gray-300)">·</span>' +
+    '<span>งานที่ยังยื่นได้ <b>' + fmt(open.length) + '</b> โครงการ' +
+      (openNew.length ? ' (ใหม่ ' + openNew.length + ')' : '') + '</span>' +
+    '<span class="push">' +
+      '<button class="btn btn-ghost" id="btnOpenOnly">ดูเฉพาะงานที่ยังยื่นได้</button>' +
+      '<button class="btn btn-primary" id="btnRun">ดึงข้อมูลใหม่ตอนนี้</button>' +
+    '</span>' +
+    '<div id="runBox"></div>';
+
+  $('#btnOpenOnly').addEventListener('click', () => jump({ openOnly: true }));
+  $('#btnRun').addEventListener('click', runUpdate);
+}
+
+/* ปุ่มดึงข้อมูล — ถ้าเปิดผ่าน egp-watch/serve.js จะสั่งงานได้จริง
+   ถ้าเปิดจากไฟล์ตรง ๆ (file://) จะคัดลอกคำสั่งให้เอาไปวางในเทอร์มินัลแทน */
+async function runUpdate() {
+  const box = $('#runBox');
+  const cmd = 'node egp-watch/watch-daily.js';
+  box.style.display = 'block';
+  box.innerHTML = '<div class="st">กำลังสั่งให้ดึงข้อมูล…</div>';
+  try {
+    const res = await fetch(RUNNER + '/run', { method: 'POST' });
+    const out = await res.json();
+    box.innerHTML = '<div class="st">' + (out.added ? 'เสร็จแล้ว — พบงานใหม่ ' +
+        out.added + ' โครงการ' : 'เสร็จแล้ว — ไม่มีงานใหม่') + '</div>' +
+      '<code>' + esc((out.log || '').slice(-1200)) + '</code>' +
+      (out.added ? '<button class="btn btn-primary" onclick="location.reload()">' +
+        'โหลดรายงานใหม่</button>' : '');
+  } catch (e) {
+    box.innerHTML =
+      '<div class="st">สั่งงานอัตโนมัติไม่ได้ — หน้านี้เปิดจากไฟล์โดยตรง</div>' +
+      '<p style="margin:.5rem 0 0;color:var(--gray-600)">' +
+        'วางคำสั่งนี้ในเทอร์มินัลที่โฟลเดอร์ CRM_app (คัดลอกให้แล้ว):</p>' +
+      '<code>' + cmd + '</code>' +
+      '<p style="margin:0;color:var(--gray-500);font-size:12.5px">' +
+        'หรือเปิดรายงานผ่าน <code style="display:inline;padding:1px 5px">node egp-watch/serve.js</code>' +
+        ' แล้วปุ่มนี้จะสั่งงานได้เลย</p>';
+    try { await navigator.clipboard.writeText(cmd); } catch (e2) {}
+  }
+}
+
+
+/* ============================ แทป: รายการใหม่ ============================= */
+/* จัดกลุ่มรายการที่เพิ่งนำเข้าตามเวลาที่ดึง เพื่อไล่ตรวจว่ามีอะไรหลุดเข้ามาผิด */
+function renderNew() {
+  const withDate = R.filter(r => r.addedAt);
+  $('#tabNewN').textContent = fmt(withDate.length);
+
+  if (!withDate.length) {
+    $('#newIntro').innerHTML = '<b>ยังไม่มีรายการที่นำเข้าเพิ่ม</b><br>' +
+      'กดปุ่ม “ดึงข้อมูลใหม่ตอนนี้” ที่แถบบนสุด หรือรัน <code class="mono">node egp-watch/watch-daily.js</code>';
+    $('#newBatches').innerHTML = '';
+    return;
+  }
+
+  const batches = {};
+  withDate.forEach(r => { (batches[r.addedAt] = batches[r.addedAt] || []).push(r); });
+  const keys = Object.keys(batches).sort().reverse();
+
+  $('#newIntro').innerHTML =
+    '<b>ไล่ตรวจรายการที่เพิ่งนำเข้า</b> — รวม ' + fmt(withDate.length) + ' โครงการ จาก ' +
+    keys.length + ' รอบการดึง<br>' +
+    'ข้อมูลผ่านตัวกรองอัตโนมัติมาแล้ว แต่คำพ้องภาษาไทยหลุดได้ ' +
+    '(เช่น <code class="mono">HIS</code> ไปตรงกับ BETA<b>HIS</b>TINE ซึ่งเป็นชื่อยา) — ' +
+    'ถ้าเจอรายการที่ไม่ควรอยู่ ให้ติ๊กเลือกแล้วกดคัดลอกเลขโครงการ ' +
+    'ไปใช้กับ <code class="mono">node egp-watch/remove-ids.js</code>';
+
+  $('#newBatches').innerHTML = keys.map((k, bi) => {
+    const rows = batches[k].slice().sort((a, b) => b.budget - a.budget);
+    const sum = rows.reduce((s, r) => s + r.budget, 0);
+    const parts = k.split('T'), p = parts[0].split('-');
+    const label = +p[2] + ' ' + TH_MON[+p[1]] + ' ' + String(+p[0] + 543).slice(2) +
+                  ' เวลา ' + parts[1] + ' น.';
+    return '<div class="card batch" data-b="' + bi + '">' +
+      '<div class="card-header"><h2>นำเข้าเมื่อ ' + label + '</h2>' +
+        '<span class="n">' + fmt(rows.length) + ' โครงการ</span>' +
+        '<span class="hint">รวม ' + fmt(sum) + ' บาท</span></div>' +
+      '<div class="pickbar">' +
+        '<label><input type="checkbox" class="allbox"> เลือกทั้งหมด</label>' +
+        '<span>เลือกแล้ว <b class="cnt">0</b></span>' +
+        '<span class="push">' +
+          '<button class="btn btn-ghost copysel">คัดลอกเลขที่เลือก</button>' +
+          '<button class="btn btn-ghost copyall">คัดลอกทั้งรอบ</button>' +
+        '</span></div>' +
+      '<div class="tbl-scroll"><table><thead><tr>' +
+        '<th class="pick"></th><th>เลขโครงการ</th><th>โครงการ</th><th>หน่วยงาน</th>' +
+        '<th>จังหวัด</th><th class="num">วงเงิน</th><th>สถานะ</th><th>ผู้ชนะ</th>' +
+        '</tr></thead><tbody>' +
+      rows.map(r => {
+        const stCls = isOpenWork(r) ? 'b-amber'
+                    : r.statusFlag === 'cancel' ? 'b-red' : 'b-green';
+        const link = typeof fullUrl === 'function' ? fullUrl(r.url) : r.url;
+        return '<tr data-id="' + r.id + '">' +
+          '<td class="pick"><input type="checkbox"></td>' +
+          '<td class="mono">' + esc(r.id) + '</td>' +
+          '<td>' + (link ? '<a class="pname" href="' + esc(link) +
+              '" target="_blank" rel="noopener">' + esc(r.name) + '</a>'
+            : '<span class="pname">' + esc(r.name) + '</span>') +
+            '<div class="rowbadges">' +
+              r.categories.map(c => '<span class="badge b-gray">' + esc(c) + '</span>').join('') +
+              (r.keywords && r.keywords.length
+                ? '<span class="badge b-mint">' + esc(r.keywords.slice(0, 3).join(' · ')) + '</span>' : '') +
+            '</div></td>' +
+          '<td>' + esc(r.org) + '<div style="font-size:11.5px;color:var(--gray-400)">' +
+            esc(r.segment) + '</div></td>' +
+          '<td>' + esc(r.province) + '</td>' +
+          '<td class="num"><b>' + fmt(r.budget) + '</b></td>' +
+          '<td><span class="badge ' + stCls + '">' + esc(r.status || '—') + '</span></td>' +
+          '<td>' + (r.winners.length ? esc(r.winners.join(' / '))
+            : '<span style="color:var(--gray-400)">—</span>') + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+  }).join('');
+
+  $('#newBatches').querySelectorAll('.batch').forEach(box => {
+    const boxes = () => Array.from(box.querySelectorAll('tbody input[type=checkbox]'));
+    const sync = () => {
+      const sel = boxes().filter(b => b.checked);
+      box.querySelector('.cnt').textContent = sel.length;
+      boxes().forEach(b => b.closest('tr').classList.toggle('picked', b.checked));
+    };
+    box.querySelector('.allbox').addEventListener('change', e => {
+      boxes().forEach(b => { b.checked = e.target.checked; }); sync();
+    });
+    box.addEventListener('change', e => { if (e.target.matches('tbody input')) sync(); });
+    const copy = ids => {
+      if (!ids.length) return;
+      const cmd = 'node egp-watch/remove-ids.js ' + ids.join(' ');
+      navigator.clipboard.writeText(cmd).then(
+        () => alert('คัดลอกคำสั่งแล้ว (' + ids.length + ' รายการ)\n\nวางในเทอร์มินัลที่โฟลเดอร์ CRM_app'),
+        () => alert(cmd));
+    };
+    box.querySelector('.copysel').addEventListener('click', () =>
+      copy(boxes().filter(b => b.checked).map(b => b.closest('tr').dataset.id)));
+    box.querySelector('.copyall').addEventListener('click', () =>
+      copy(boxes().map(b => b.closest('tr').dataset.id)));
+  });
+}
+
+/* ============================ init ======================================== */
+renderKpis(); renderFresh(); renderNew(); renderOpen(); renderGroups(); renderCats();
+renderFormFy(); renderRegion(); renderProv(); renderTrend(); renderHis(); renderSrc();
+initControls(); renderRaw();
+$('#fVen').addEventListener('input', e => { venQ = e.target.value.trim(); renderVen(); });
+renderVen();
+</script>
+</body>
+</html>

@@ -31,14 +31,16 @@ const today = () => {
 
 /* ---- state: เลขโครงการที่รู้จักแล้ว ---------------------------------------- */
 function loadKnown() {
-  if (fs.existsSync(STATE)) return JSON.parse(fs.readFileSync(STATE, 'utf8'));
-  // ครั้งแรก: seed จากไฟล์ .md ที่มีอยู่ (แหล่งความจริง)
-  const seed = {};
+  const known = fs.existsSync(STATE) ? JSON.parse(fs.readFileSync(STATE, 'utf8')) : {};
+  // seed จากไฟล์ .md ที่มีอยู่ (แหล่งความจริง) — ต้องเช็ค "รายกลุ่ม" ไม่ใช่เช็คว่ามีไฟล์ state ไหม
+  // เดิมเช็คแค่ว่าไฟล์ state มีอยู่แล้วก็ return เลย พอเพิ่มกลุ่มที่ 4 ทีหลัง กลุ่มนั้นจึงไม่ถูก seed
+  // แล้ว --dry-run รายงานว่าทุกแถวในไฟล์นั้นเป็น "งานใหม่" (ตรวจเจอ 21 ก.ย. 69 ตอนเพิ่มกลุ่ม log)
   for (const g of GROUPS) {
-    seed[g.id] = Array.from(md.idsInFile(path.join(ROOT, g.mdFile)));
-    console.log('  seed ' + g.id + ': ' + seed[g.id].length + ' เลขโครงการจาก ' + g.mdFile);
+    if (known[g.id]) continue;
+    known[g.id] = Array.from(md.idsInFile(path.join(ROOT, g.mdFile)));
+    console.log('  seed ' + g.id + ': ' + known[g.id].length + ' เลขโครงการจาก ' + g.mdFile);
   }
-  return seed;
+  return known;
 }
 
 /* ============================================================================ */
@@ -59,7 +61,7 @@ function loadKnown() {
     (g.excludeIdsFrom || []).forEach(other =>
       (known[other] || []).forEach(id => seen.add(id)));
     const fresh = new Map();
-    let scanned = 0, rejected = 0;
+    let scanned = 0, rejected = 0, belowFloor = 0;
     process.stdout.write('▸ ' + g.label + '\n');
 
     for (const kw of g.keywords) {
@@ -70,6 +72,9 @@ function loadKnown() {
         scanned += r.rows.length;
         for (const rec of r.rows) {
           if (seen.has(rec.project_id) || fresh.has(rec.project_id) || BLOCKED.has(rec.project_id)) continue;
+          // กลุ่มที่ไฟล์ .md ประกาศพื้นวงเงินไว้ ต้องบังคับตรงนี้ด้วย
+          // ไม่งั้น section เสริมจะขัดกับขอบเขตที่ไฟล์ประกาศเอง
+          if (g.minMoney && (+rec.project_money || 0) < g.minMoney) { belowFloor++; continue; }
           const v = accept(rec, g.id);
           if (!v.ok) { rejected++; continue; }
           fresh.set(rec.project_id, Object.assign({}, rec, { _kw: kw }));
@@ -80,6 +85,7 @@ function loadKnown() {
     const recs = Array.from(fresh.values()).sort(
       (a, b) => (b.project_money || 0) - (a.project_money || 0));
     console.log('   สแกน ' + scanned + ' · คัดออก ' + rejected +
+                (belowFloor ? ' · ต่ำกว่าพื้นวงเงิน ' + belowFloor : '') +
                 ' · ' + (recs.length ? 'งานใหม่ ' + recs.length : 'ไม่มีงานใหม่'));
     result.push({ group: g, records: recs });
   }

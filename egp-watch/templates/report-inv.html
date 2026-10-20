@@ -285,6 +285,7 @@ tr.picked{background:#FFF7ED !important}
 <body>
 <header>
   <div class="wrap">
+    <a href="market-reports.html" style="display:inline-block;font-size:13px;margin-bottom:6px">← ศูนย์รวมรายงานทั้งหมด</a>
     <h1><svg class="ic ic-lg"><use href="#i-box"/></svg> ตลาดระบบคลัง · เวชภัณฑ์ · ERP ในโรงพยาบาล</h1>
     <nav class="tabs" role="tablist">
       <button role="tab" aria-selected="true"  data-tab="sum"><svg class="ic"><use href="#i-chart"/></svg> สรุป</button>
@@ -659,7 +660,8 @@ function renderTrend() {
 /* ---------- แทป: ข้อมูลดิบ ------------------------------------------------- */
 const COLS = [
   ['id',      'เลขโครงการ',  r => '<span class="mono">' + esc(r.id) + '</span>'],
-  ['name',    'ชื่อโครงการ', r => '<span class="pname">' + esc(r.name) + '</span>' +
+  ['name',    'ชื่อโครงการ', r => (r.url ? '<a class="pname" href="' + esc(r.url) + '" target="_blank" rel="noopener">' + esc(r.name) + '</a>'
+                                             : '<span class="pname">' + esc(r.name) + '</span>') +
                                   (r.isOpen ? ' <span class="badge b-new">ยังยื่นได้</span>' : '')],
   ['org',     'หน่วยงาน',    r => esc(r.org)],
   ['province','จังหวัด',     r => esc(r.province)],

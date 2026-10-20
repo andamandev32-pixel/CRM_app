@@ -58,4 +58,12 @@ async function search(keyword, year) {
   return { total, rows };
 }
 
-module.exports = { search, sleep, apiKey, DELAY_MS };
+/* วัดขนาดผลดิบของคีย์เวิร์ดโดยไม่ดึงข้อมูลจริง — ยิงครั้งเดียว อ่านแต่ total
+   ใช้ตอนคัดคีย์เวิร์ดก่อนเก็บจริง (รอบ inv เคยเสียเวลากับคำที่ให้ผลดิบ 220,617
+   แต่ของจริง 0 รายการ) */
+async function probe(keyword, year) {
+  const r = await callOnce({ year, keyword, limit: 1, offset: 0 });
+  return r.total || 0;
+}
+
+module.exports = { search, probe, callOnce, sleep, apiKey, DELAY_MS, MAX_ROWS };

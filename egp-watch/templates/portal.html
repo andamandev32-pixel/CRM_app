@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ศูนย์รวมรายงานตลาด e-GP</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap">
+<style>
+/* ============================================================================
+   market-reports.html — หน้ารวมรายงานตลาด e-GP ทุกไฟล์
+   สร้างโดย egp-watch/build-reports.js จาก templates/portal.html
+   ← แก้หน้าตาที่ template แล้ว build ใหม่ อย่าแก้ไฟล์ที่ root ตรง ๆ (จะถูกเขียนทับ)
+   โทนสีเดียวกับรายงานทั้ง 4 ไฟล์ (LINE Green บนพื้นขาว)
+   ========================================================================= */
+:root{
+  --green:#06C755; --green-dark:#05A544; --green-deep:#037A32;
+  --green-light:#E8F9EF; --green-50:#F3FCF7;
+  --bg-alt:#F7F9F8; --bg-surface:#FFFFFF;
+  --gray-50:#F9FAFB; --gray-100:#F2F4F7; --gray-200:#EAECF0; --gray-300:#D0D5DD; --gray-400:#98A2B3;
+  --gray-500:#667085; --gray-600:#475467; --gray-700:#344054; --gray-900:#101828;
+  --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+  --shadow-md:0 10px 15px -3px rgba(16,24,40,.1),0 4px 6px -2px rgba(16,24,40,.05);
+  --radius-sm:6px; --radius:12px; --radius-pill:9999px;
+  --amber-light:#FEF6E7; --amber-deep:#B54708; --red:#D92D20; --red-light:#FEF3F2;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg-alt);color:var(--gray-900);
+  font-family:'Sarabun','Leelawadee UI','Tahoma',system-ui,sans-serif;font-size:14px;
+  line-height:1.7}   /* 1.7 — สระบน/ล่างภาษาไทยโดนตัดที่ 1.5 */
+h1,h2,h3{margin:0;font-weight:700;line-height:1.4}
+p{margin:0}
+a{color:var(--green-dark);text-decoration:none}
+a:hover{text-decoration:underline}
+button,input{font:inherit;color:inherit}
+[hidden]{display:none !important}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+.ic{width:1em;height:1em;flex:none;vertical-align:-.14em;fill:none;stroke:currentColor;
+  stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:ui-monospace,'Cascadia Mono',Consolas,monospace;font-size:12.5px}
+
+/* ---------- header + แทป ---------- */
+header{background:var(--bg-surface);border-bottom:1px solid var(--gray-200);padding:26px 0 0}
+header h1{font-size:25px;display:flex;align-items:center;gap:12px}
+header h1 .ic{color:var(--green);width:1.2em;height:1.2em}
+header .sub{color:var(--gray-600);margin-top:2px}
+nav.tabs{display:flex;gap:8px;margin-top:18px;overflow-x:auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{background:transparent;border:none;border-bottom:3px solid transparent;cursor:pointer;
+  white-space:nowrap;padding:.65rem 1rem;border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+  color:var(--gray-600);font-weight:500;display:flex;align-items:center;gap:.5rem;transition:all .2s}
+nav.tabs button:hover{background:var(--green-50);color:var(--green-dark)}
+nav.tabs button[aria-selected="true"]{color:var(--green-dark);border-bottom-color:var(--green);font-weight:700}
+nav.tabs .n{background:var(--gray-100);color:var(--gray-600);border-radius:var(--radius-pill);
+  padding:0 .5em;font-size:12px;font-weight:600}
+nav.tabs button[aria-selected="true"] .n{background:var(--green-light);color:var(--green-deep)}
+nav.tabs .n.hot{background:var(--amber-light);color:var(--amber-deep)}
+
+/* ---------- แถบข้อมูลล่าสุด + ปุ่มดึงข้อมูล ---------- */
+.freshbar{background:var(--green-50);border:1px solid #BDEFD0;border-radius:var(--radius);
+  padding:12px 16px;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.freshbar .dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(6,199,85,.18)}
+.freshbar .push{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;border-radius:var(--radius-pill);padding:6px 16px;
+  font-weight:600;cursor:pointer;border:1px solid transparent;white-space:nowrap;text-decoration:none}
+.btn:hover{text-decoration:none}
+.btn-primary{background:var(--green);color:#fff}
+.btn-primary:hover{background:var(--green-dark)}
+.btn-primary:disabled{background:var(--gray-300);cursor:wait}
+.btn-ghost{background:var(--bg-surface);border-color:var(--gray-300);color:var(--gray-700)}
+.btn-ghost:hover{border-color:var(--green);color:var(--green-dark)}
+.btn-sm{padding:3px 12px;font-size:12.5px}
+#runBox{flex-basis:100%;display:none;border-top:1px dashed #BDEFD0;padding-top:10px;margin-top:4px}
+#runBox .st{font-weight:600}
+#runBox pre{background:var(--gray-900);color:#D1FADF;border-radius:var(--radius-sm);padding:10px 12px;
+  margin:8px 0;max-height:220px;overflow:auto;font-size:12px;white-space:pre-wrap}
+#runBox .err{color:var(--red)}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--green-light);border-top-color:var(--green);
+  border-radius:50%;animation:sp 1s linear infinite;vertical-align:-1px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+main{padding:22px 0 64px}
+.tab-body{margin-top:22px}
+h2{font-size:18px;display:flex;align-items:center;gap:8px;margin:0 0 12px}
+h2 .ic{color:var(--green)}
+.intro{color:var(--gray-600);margin-bottom:14px}
+
+/* ---------- KPI ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--bg-surface);border:1px solid var(--gray-200);border-radius:var(--radius);
+  padding:14px 16px;box-shadow:var(--shadow-sm)}
+.kpi .l{color:var(--gray-500);font-size:13px}
+.kpi .v{font-size:24px;font-weight:700;line-height:1.3}
+.kpi .h{color:var(--gray-500);font-size:12px}
+.kpi.hot .v{color:var(--amber-deep)}
+
+/* ---------- การ์ดรายงาน ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:16px}
+.card{background:var(--bg-surface);border:1px solid var(--gray-200);border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);display:flex;flex-direction:column;transition:box-shadow .2s,border-color .2s}
+.card:hover{box-shadow:var(--shadow-md);border-color:var(--gray-300)}
+.card .top{padding:18px 20px 0;display:flex;gap:14px;align-items:flex-start}
+.badge-ic{background:var(--green-light);color:var(--green-deep);border-radius:10px;
+  width:42px;height:42px;display:grid;place-items:center;flex:none}
+.badge-ic .ic{width:22px;height:22px}
+.card h3{font-size:17px}
+.desc{color:var(--gray-600);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:14px 20px;margin-top:6px}
+.stat .l{color:var(--gray-500);font-size:12px}
+.stat .v{font-weight:700;font-size:16px}
+.stat.hot .v{color:var(--amber-deep)}
+.stat.new .v{color:var(--green-deep)}
+.tops{padding:0 20px 14px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tops h4{margin:0 0 4px;font-size:12px;color:var(--gray-500);font-weight:600}
+.tops ol{margin:0;padding-left:1.2em;font-size:13px}
+.tops li{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tops li .num{color:var(--gray-500)}
+.card .foot{margin-top:auto;border-top:1px solid var(--gray-200);padding:12px 20px;
+  display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:13px;color:var(--gray-500)}
+.card .foot .btn{margin-left:auto}
+
+/* ---------- ตัวกรอง ---------- */
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.chip{background:var(--bg-surface);border:1px solid var(--gray-300);border-radius:var(--radius-pill);
+  padding:3px 12px;cursor:pointer;font-size:13px;color:var(--gray-700)}
+.chip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.chip .n{opacity:.75;margin-left:4px}
+.search{margin-left:auto;border:1px solid var(--gray-300);border-radius:var(--radius-pill);padding:4px 14px;
+  min-width:240px;background:var(--bg-surface)}
+.search:focus{outline:2px solid var(--green-light);border-color:var(--green)}
+
+/* ---------- ตาราง ---------- */
+.batch{background:var(--bg-surface);border:1px solid var(--gray-200);border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);margin-bottom:16px;overflow:hidden}
+.batch-h{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;padding:12px 16px;border-bottom:1px solid var(--gray-200)}
+.batch-h h3{font-size:15px}
+.batch-h .hint{color:var(--gray-500);font-size:13px}
+.tbl-wrap{overflow-x:auto}
+.tbl-card{background:var(--bg-surface);border:1px solid var(--gray-200);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--gray-100);vertical-align:top}
+th{background:var(--gray-50);color:var(--gray-600);font-weight:600;white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--green-50)}
+td.r,th.r{text-align:right}
+.pname{font-weight:500;color:var(--gray-900);display:block;max-width:60ch}
+a.pname:hover{color:var(--green-dark)}
+.sub2{color:var(--gray-500);font-size:12px}
+.tag{display:inline-block;border-radius:var(--radius-pill);padding:0 .6em;font-size:12px;font-weight:600;white-space:nowrap}
+.tag.g{background:var(--green-light);color:var(--green-deep)}
+.tag.a{background:var(--amber-light);color:var(--amber-deep)}
+.tag.gr{background:var(--gray-100);color:var(--gray-600)}
+.tag.r{background:var(--red-light);color:var(--red)}
+.kw{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.empty{padding:28px;color:var(--gray-500);text-align:center}
+
+/* ---------- ไฟล์ ---------- */
+.files{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:10px}
+.file{background:var(--bg-surface);border:1px solid var(--gray-200);border-radius:var(--radius-sm);
+  padding:10px 14px;display:flex;gap:10px;align-items:flex-start}
+.file .ic{color:var(--gray-400);margin-top:4px}
+.file .name{font-weight:600;word-break:break-all}
+.file .meta{color:var(--gray-500);font-size:12px}
+.files-h{font-size:14px;color:var(--gray-600);margin:18px 0 8px;font-weight:600}
+.files-h:first-child{margin-top:0}
+
+footer{color:var(--gray-500);font-size:13px;border-top:1px solid var(--gray-200);padding-top:18px;margin-top:40px}
+code{background:var(--gray-100);border-radius:4px;padding:1px 6px;font-size:12px}
+
+@media (max-width:720px){
+  header h1{font-size:20px}
+  .stats{grid-template-columns:repeat(3,1fr)}
+  .tops{grid-template-columns:1fr}
+  .card .foot .btn{margin-left:0}
+  .freshbar .push{margin-left:0}
+  .search{margin-left:0;min-width:0;flex:1 1 100%}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="i-pill" viewBox="0 0 24 24"><path d="M10.5 20.5 3.5 13.5a4.95 4.95 0 1 1 7-7l7 7a4.95 4.95 0 1 1-7 7Z"/><path d="m8.5 8.5 7 7"/></symbol>
+  <symbol id="i-hosp" viewBox="0 0 24 24"><path d="M12 6v4M10 8h4"/><path d="M4 21V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16"/><path d="M2 21h20M9 21v-4h6v4"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+  <symbol id="i-fire" viewBox="0 0 24 24"><path d="M12 22c4 0 7-3 7-7 0-4-3-6-4-9-1 2-2 3-4 3 0-2 0-4-2-6-1 4-5 6-5 12 0 4 3 7 8 7Z"/></symbol>
+  <symbol id="i-new" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.9-3.9L3 9M4 13a8 8 0 0 0 14.9 3.9L21 15"/><path d="M3 4v5h5M21 20v-5h-5"/></symbol>
+</defs></svg>
+
+<header>
+  <div class="wrap">
+    <h1><svg class="ic"><use href="#i-grid"/></svg> ศูนย์รวมรายงานตลาด e-GP สายสาธารณสุข</h1>
+    <p class="sub" id="sub">—</p>
+    <nav class="tabs" role="tablist">
+      <button role="tab" aria-selected="true"  data-tab="sum"><svg class="ic"><use href="#i-grid"/></svg> ภาพรวม</button>
+      <button role="tab" aria-selected="false" data-tab="new"><svg class="ic"><use href="#i-new"/></svg> รายการใหม่ <span class="n" id="tabNewN">0</span></button>
+      <button role="tab" aria-selected="false" data-tab="open"><svg class="ic"><use href="#i-fire"/></svg> ยังยื่นได้ <span class="n hot" id="tabOpenN">0</span></button>
+      <button role="tab" aria-selected="false" data-tab="files"><svg class="ic"><use href="#i-file"/></svg> ไฟล์ทั้งหมด <span class="n" id="tabFilesN">0</span></button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="freshbar" id="freshbar"></div>
+
+  <!-- ============================ ภาพรวม ============================ -->
+  <section class="tab-body" id="tab-sum">
+    <div class="kpis" id="kpis"></div>
+    <h2><svg class="ic"><use href="#i-grid"/></svg> รายงานแยกตามกลุ่มตลาด</h2>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <!-- ============================ รายการใหม่ ============================ -->
+  <section class="tab-body" id="tab-new" hidden>
+    <p class="intro">โครงการที่ถูกเติมเข้ามาหลังชุดตั้งต้น เรียงตามรอบการดึง ใหม่สุดอยู่บน —
+      <b>กดชื่อโครงการหรือปุ่ม “เปิดใน e-GP”</b> เพื่อไปดูหน้าโครงการจริงในระบบ e-GP</p>
+    <div class="filters" id="newFilters"></div>
+    <div id="newBatches"></div>
+  </section>
+
+  <!-- ============================ ยังยื่นได้ ============================ -->
+  <section class="tab-body" id="tab-open" hidden>
+    <p class="intro">โครงการสถานะ <b>ประกาศเชิญชวน</b> หรือ <b>จัดทำ/วิจารณ์ร่าง TOR</b> จากทุกกลุ่ม เรียงตามวงเงิน —
+      กดเข้าไปดูเอกสาร TOR และกำหนดยื่นใน e-GP ได้ทันที</p>
+    <div class="filters" id="openFilters"></div>
+    <div class="tbl-card"><div class="tbl-wrap"><table>
+      <thead><tr><th>กลุ่ม</th><th>เลขโครงการ</th><th>โครงการ</th><th>จังหวัด</th><th class="r">วงเงิน (บาท)</th><th>สถานะ</th><th>ประกาศ</th><th></th></tr></thead>
+      <tbody id="openRows"></tbody>
+    </table></div></div>
+  </section>
+
+  <!-- ============================ ไฟล์ ============================ -->
+  <section class="tab-body" id="tab-files" hidden>
+    <div id="files"></div>
+  </section>
+
+  <footer>
+    ดึงข้อมูลใหม่จาก API: <code>node egp-watch/watch-daily.js</code> ·
+    เปิดผ่านเซิร์ฟเวอร์ในเครื่อง (ให้ปุ่มดึงข้อมูลทำงาน): <code>node egp-watch/serve.js</code> → <code>http://127.0.0.1:8899/</code> ·
+    สร้างหน้านี้ใหม่: <code>node egp-watch/build-reports.js</code>
+  </footer>
+</main>
+
+<script>
+const D = /*__DATA__*/null;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = n => Math.round(n || 0).toLocaleString('th-TH');
+const mb = n => (n / 1e6).toLocaleString('th-TH', { maximumFractionDigits: 1 }) + ' ล.';
+const TH_M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+// วันที่ในข้อมูลเป็น พ.ศ. (2569-08-31) · addedAt/วันที่ build เป็น ค.ศ. (2026-09-30T15:30)
+const thDate = s => {
+  if (!s) return '—';
+  const [y, m, d] = s.slice(0, 10).split('-').map(Number);
+  return d + ' ' + TH_M[m - 1] + ' ' + String(y < 2400 ? y + 543 : y).slice(2);
+};
+const thStamp = s => s ? thDate(s) + (s.length > 10 ? ' ' + s.slice(11, 16) + ' น.' : '') : '—';
+const R = D.reports;
+const sum = f => R.reduce((a, r) => a + r[f], 0);
+const egpBtn = u => '<a class="btn btn-ghost btn-sm" href="' + esc(u) + '" target="_blank" rel="noopener">' +
+  'เปิดใน e-GP <svg class="ic"><use href="#i-ext"/></svg></a>';
+const nameLink = r => '<a class="pname" href="' + esc(r.url) + '" target="_blank" rel="noopener">' + esc(r.name) + '</a>';
+const statusTag = r => '<span class="tag ' + (r.isOpen ? 'a' : /ยกเลิก/.test(r.status || '') ? 'r' : 'gr') + '">' +
+  esc(r.status || '—') + '</span>';
+
+/* ============================ หัวเพจ + แทป ============================ */
+$('sub').textContent = R.length + ' กลุ่มตลาด · ประกาศจัดซื้อจัดจ้างภาครัฐ พ.ศ. ' + D.years +
+  ' · สร้างหน้านี้เมื่อ ' + thStamp(D.built);
+$('tabNewN').textContent = fmt(D.added.length);
+$('tabOpenN').textContent = fmt(D.open.length);
+$('tabFilesN').textContent = fmt(D.files.length);
+
+const TABS = ['sum', 'new', 'open', 'files'];
+function show(tab) {
+  if (!TABS.includes(tab)) tab = 'sum';
+  document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
+  TABS.forEach(t => { $('tab-' + t).hidden = t !== tab; });
+  if (location.hash.slice(1) !== tab) history.replaceState(null, '', '#' + tab);
+}
+document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
+show(location.hash.slice(1));
+
+/* ============================ แถบบน + ปุ่มดึงข้อมูล ============================ */
+const RUNNER = 'http://127.0.0.1:8899';          // egp-watch/serve.js
+const lastAdded = D.added.length ? D.added[0].addedAt : null;
+const lastBatch = lastAdded ? D.added.filter(r => r.addedAt === lastAdded).length : 0;
+$('freshbar').innerHTML =
+  '<span class="dot"></span>' +
+  '<span>เติมข้อมูลล่าสุด: <b>' + (lastAdded ? thStamp(lastAdded) + '</b> (+' + fmt(lastBatch) + ' โครงการ)' : 'ยังไม่เคย</b>') + '</span>' +
+  '<span>· ประกาศล่าสุดในชุดข้อมูล <b>' + thDate(D.latest) + '</b></span>' +
+  '<span class="push">' +
+    '<button class="btn btn-ghost" id="btnGoNew">ดูรายการใหม่</button>' +
+    '<button class="btn btn-primary" id="btnRun"><svg class="ic"><use href="#i-refresh"/></svg> ดึงข้อมูลใหม่ตอนนี้</button>' +
+  '</span><div id="runBox"></div>';
+$('btnGoNew').addEventListener('click', () => show('new'));
+$('btnRun').addEventListener('click', runUpdate);
+
+/* สั่งงานผ่าน serve.js: /start เริ่มงานเบื้องหลัง แล้วถาม /status ทุก 3 วินาที
+   (รอบเต็มใช้เวลาเกิน 10 นาที — ไม่รอใน request เดียวเพราะเบราว์เซอร์อาจตัดทิ้ง)
+   ถ้าเปิดจากไฟล์ตรง ๆ (file://) จะคัดลอกคำสั่งให้เอาไปวางในเทอร์มินัลแทน */
+async function runUpdate() {
+  const box = $('runBox'), btn = $('btnRun');
+  const cmd = 'node egp-watch/watch-daily.js';
+  box.style.display = 'block';
+  box.innerHTML = '<div class="st"><span class="spin"></span>กำลังสั่งให้ดึงข้อมูล…</div>';
+  try {
+    const res = await fetch(RUNNER + '/start', { method: 'POST' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    btn.disabled = true;
+    poll();
+  } catch (e) {
+    box.innerHTML =
+      '<div class="st">สั่งงานอัตโนมัติไม่ได้ — หน้านี้เปิดจากไฟล์โดยตรง ไม่ได้เปิดผ่าน serve.js</div>' +
+      '<p class="desc" style="margin-top:4px">วางคำสั่งนี้ในเทอร์มินัลที่โฟลเดอร์ CRM_app (คัดลอกให้แล้ว):</p>' +
+      '<pre>' + cmd + '</pre>' +
+      '<p class="desc">หรือรัน <code>node egp-watch/serve.js</code> แล้วเปิด ' +
+      '<a href="' + RUNNER + '/">' + RUNNER + '/</a> ปุ่มนี้จะสั่งงานได้เลย</p>';
+    try { await navigator.clipboard.writeText(cmd); } catch (e2) {}
+  }
+}
+
+async function poll() {
+  const box = $('runBox'), btn = $('btnRun');
+  let s;
+  try { s = await (await fetch(RUNNER + '/status')).json(); }
+  catch (e) { box.innerHTML = '<div class="st err">ติดต่อ serve.js ไม่ได้แล้ว — เซิร์ฟเวอร์ถูกปิดหรือไม่</div>'; btn.disabled = false; return; }
+  const mins = Math.floor(s.elapsed / 60), secs = s.elapsed % 60;
+  const tail = '<pre>' + esc((s.log || '').split('\n').slice(-12).join('\n') || '…') + '</pre>';
+  if (s.running) {
+    box.innerHTML = '<div class="st"><span class="spin"></span>กำลังดึงข้อมูล… ' + mins + ' นาที ' + secs +
+      ' วินาที <span class="desc">(ปกติ 3–15 นาที ปิดหน้านี้ได้ งานยังทำต่อ)</span></div>' + tail;
+    setTimeout(poll, 3000);
+    return;
+  }
+  btn.disabled = false;
+  box.innerHTML = s.failed
+    ? '<div class="st err">ดึงข้อมูลไม่สำเร็จ</div>' + tail
+    : '<div class="st">เสร็จแล้ว — ' + (s.added ? 'พบงานใหม่ ' + fmt(s.added) + ' โครงการ' :
+        'ไม่มีงานใหม่ (API ของ สพร. อัปเดตเป็นรอบเดือน ระหว่างเดือนอาจไม่มีอะไรเพิ่ม)') + '</div>' + tail +
+      (s.added ? '<button class="btn btn-primary" onclick="location.hash=\'new\';location.reload()">โหลดหน้าใหม่ แล้วดูรายการใหม่</button>' : '');
+}
+
+// ถ้ามีงานค้างอยู่ (เช่นกดจากรายงานอื่นหรือรีเฟรชหน้า) ให้แสดงความคืบหน้าต่อ
+fetch(RUNNER + '/status').then(r => r.json()).then(s => {
+  if (s.running) { $('runBox').style.display = 'block'; $('btnRun').disabled = true; poll(); }
+}).catch(() => {});
+
+/* ============================ ภาพรวม ============================ */
+$('kpis').innerHTML = [
+  ['โครงการทั้งหมด', fmt(sum('projects')), 'จาก ' + R.length + ' กลุ่มตลาด'],
+  ['มูลค่ารวม (วงเงิน)', mb(sum('value')), fmt(sum('value')) + ' บาท'],
+  ['หน่วยงานผู้ซื้อ', fmt(D.orgs), 'นับไม่ซ้ำข้ามกลุ่ม'],
+  ['รายการใหม่', fmt(D.added.length), 'เติมหลังชุดตั้งต้น'],
+  ['ดีลที่ยังยื่นได้', fmt(D.open.length), 'ประกาศเชิญชวน / ร่าง TOR', 'hot'],
+].map(([l, v, h, c]) => '<div class="kpi ' + (c || '') + '"><div class="l">' + l + '</div><div class="v num">' +
+  v + '</div><div class="h">' + h + '</div></div>').join('');
+
+$('cards').innerHTML = R.map(r => {
+  const list = (arr, val) => arr.length
+    ? '<ol>' + arr.map(x => '<li title="' + esc(x.name) + '">' + esc(x.name) + ' <span class="num">· ' + val(x) + '</span></li>').join('') + '</ol>'
+    : '<p class="desc">—</p>';
+  return '<article class="card">' +
+    '<div class="top"><div class="badge-ic"><svg class="ic"><use href="#' + r.icon + '"/></svg></div>' +
+      '<div><h3>' + esc(r.title) + '</h3><p class="desc">' + esc(r.desc) + '</p></div></div>' +
+    '<div class="stats">' +
+      '<div class="stat"><div class="l">โครงการ</div><div class="v num">' + fmt(r.projects) + '</div></div>' +
+      '<div class="stat"><div class="l">มูลค่า</div><div class="v num">' + mb(r.value) + '</div></div>' +
+      '<div class="stat"><div class="l">หน่วยงาน</div><div class="v num">' + fmt(r.orgs) + '</div></div>' +
+      '<div class="stat ' + (r.added ? 'new' : '') + '"><div class="l">รายการใหม่</div><div class="v num">' + fmt(r.added) + '</div></div>' +
+      '<div class="stat ' + (r.open ? 'hot' : '') + '"><div class="l">ยังยื่นได้</div><div class="v num">' + fmt(r.open) + '</div></div>' +
+    '</div>' +
+    '<div class="tops">' +
+      '<div><h4>' + esc(r.productLabel) + '</h4>' + list(r.topProducts, x => fmt(x.projects) + ' งาน') + '</div>' +
+      '<div><h4>ผู้ขายมูลค่าสูงสุด</h4>' + list(r.topVendors, x => mb(x.value)) + '</div>' +
+    '</div>' +
+    '<div class="foot">' +
+      '<span><svg class="ic"><use href="#i-clock"/></svg> ' +
+        (r.lastAdded ? 'เติมล่าสุด ' + thStamp(r.lastAdded) : 'ชุดตั้งต้น ยังไม่มีรอบเติม') + '</span>' +
+      '<a href="' + esc(r.md) + '">ไฟล์ข้อมูล .md</a>' +
+      '<a class="btn btn-primary" href="' + esc(r.file) + '">เปิดรายงาน <svg class="ic"><use href="#i-arrow"/></svg></a>' +
+    '</div></article>';
+}).join('');
+
+/* ============================ ตัวกรองกลุ่ม + ค้นหา (ใช้ร่วมสองแทป) ============================ */
+function filterBar(el, rows, onChange) {
+  const st = { group: '', q: '' };
+  const counts = {};
+  rows.forEach(r => { counts[r.group] = (counts[r.group] || 0) + 1; });
+  el.innerHTML =
+    '<button class="chip" aria-pressed="true" data-g="">ทั้งหมด<span class="n">' + fmt(rows.length) + '</span></button>' +
+    R.filter(x => counts[x.group]).map(x => '<button class="chip" aria-pressed="false" data-g="' + esc(x.group) + '">' +
+      esc(x.group) + '<span class="n">' + fmt(counts[x.group]) + '</span></button>').join('') +
+    '<input class="search" type="search" placeholder="ค้นชื่อโครงการ · หน่วยงาน · จังหวัด · เลขโครงการ">';
+  el.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+    st.group = c.dataset.g;
+    el.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === c));
+    onChange(st);
+  }));
+  el.querySelector('.search').addEventListener('input', e => { st.q = e.target.value.trim().toLowerCase(); onChange(st); });
+  onChange(st);
+}
+const match = (r, st) => (!st.group || r.group === st.group) &&
+  (!st.q || [r.name, r.org, r.province, r.id].join(' ').toLowerCase().includes(st.q));
+
+/* ============================ รายการใหม่ ============================ */
+function renderNew(st) {
+  const rows = D.added.filter(r => match(r, st));
+  if (!D.added.length) {
+    $('newBatches').innerHTML = '<div class="batch empty">ยังไม่มีรายการใหม่ — กดปุ่ม “ดึงข้อมูลใหม่ตอนนี้” ที่แถบบนสุด</div>';
+    return;
+  }
+  if (!rows.length) { $('newBatches').innerHTML = '<div class="batch empty">ไม่พบรายการที่ตรงกับตัวกรอง</div>'; return; }
+  const batches = {};
+  rows.forEach(r => { (batches[r.addedAt] = batches[r.addedAt] || []).push(r); });
+  $('newBatches').innerHTML = Object.keys(batches).sort().reverse().map(k => {
+    const b = batches[k];
+    const total = b.reduce((s, r) => s + r.budget, 0);
+    const open = b.filter(r => r.isOpen).length;
+    return '<div class="batch"><div class="batch-h"><h3>นำเข้าเมื่อ ' + thStamp(k) + '</h3>' +
+      '<span class="tag g">' + fmt(b.length) + ' โครงการ</span>' +
+      (open ? '<span class="tag a">ยังยื่นได้ ' + open + '</span>' : '') +
+      '<span class="hint">รวม ' + fmt(total) + ' บาท</span></div>' +
+      '<div class="tbl-wrap"><table><thead><tr><th>กลุ่ม</th><th>เลขโครงการ</th><th>โครงการ</th><th>หน่วยงาน</th>' +
+      '<th class="r">วงเงิน (บาท)</th><th>สถานะ</th><th>ผู้ชนะ</th><th></th></tr></thead><tbody>' +
+      b.map(r => '<tr><td><span class="tag g">' + esc(r.group) + '</span></td>' +
+        '<td class="mono">' + esc(r.id) + '</td>' +
+        '<td>' + nameLink(r) +
+          (r.keywords.length ? '<div class="kw">' + r.keywords.map(k => '<span class="tag gr">' + esc(k) + '</span>').join('') + '</div>' : '') + '</td>' +
+        '<td>' + esc(r.org) + '<div class="sub2">' + esc(r.province) + '</div></td>' +
+        '<td class="r num"><b>' + fmt(r.budget) + '</b></td>' +
+        '<td>' + statusTag(r) + '</td>' +
+        '<td>' + (r.winners.length ? esc(r.winners.join(' / ')) : '<span class="sub2">—</span>') + '</td>' +
+        '<td>' + egpBtn(r.url) + '</td></tr>').join('') +
+      '</tbody></table></div></div>';
+  }).join('');
+}
+filterBar($('newFilters'), D.added, renderNew);
+
+/* ============================ ยังยื่นได้ ============================ */
+function renderOpen(st) {
+  const rows = D.open.filter(r => match(r, st));
+  $('openRows').innerHTML = rows.length ? rows.map(r =>
+    '<tr><td><span class="tag g">' + esc(r.group) + '</span></td>' +
+    '<td class="mono">' + esc(r.id) + '</td>' +
+    '<td>' + nameLink(r) + '<div class="sub2">' + esc(r.org) + '</div></td>' +
+    '<td>' + esc(r.province) + '</td>' +
+    '<td class="r num"><b>' + fmt(r.budget) + '</b></td>' +
+    '<td>' + statusTag(r) + '</td>' +
+    '<td class="num">' + thDate(r.announced) + '</td>' +
+    '<td>' + egpBtn(r.url) + '</td></tr>').join('')
+    : '<tr><td colspan="8" class="empty">' + (D.open.length ? 'ไม่พบรายการที่ตรงกับตัวกรอง' : 'ไม่มีดีลที่ยังยื่นได้ในชุดข้อมูลตอนนี้') + '</td></tr>';
+}
+filterBar($('openFilters'), D.open, renderOpen);
+
+/* ============================ ไฟล์ทั้งหมด ============================ */
+const kinds = [];
+D.files.forEach(f => { const k = f.kind.split(' · ')[0]; if (!kinds.includes(k)) kinds.push(k); });
+$('files').innerHTML = kinds.map(k =>
+  '<div class="files-h">' + esc(k) + '</div><div class="files">' +
+  D.files.filter(f => f.kind.split(' · ')[0] === k).map(f =>
+    '<div class="file"><svg class="ic"><use href="#i-file"/></svg><div>' +
+    '<a class="name" href="' + esc(f.path) + '"' + (/\.html$/.test(f.path) ? '' : ' target="_blank" rel="noopener"') + '>' + esc(f.name) + '</a>' +
+    '<div class="meta">' + esc(f.kind.split(' · ')[1] || f.kind) + ' · ' + fmt(f.kb) + ' KB · แก้ไขล่าสุด ' + thStamp(f.mtime) + '</div>' +
+    '</div></div>').join('') + '</div>').join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+# ความลับ — ห้าม commit
+egp-watch/.env
+egp-watch/state/
+egp-watch/inbox/
+
+# ไฟล์ทำงานชั่วคราว
+.playwright-mcp/
+*.tmp
+egp-watch/pipeline/data*.json
+
+# ฉบับแชร์ (node egp-watch/make-share.js)
+share/
